@@ -31,7 +31,7 @@ router = APIRouter(prefix="/api/v1/meet", tags=["meet"])
     status_code=status.HTTP_201_CREATED,
     summary="Create an instant Google Meet room",
 )
-async def create_meet_room(
+def create_meet_room(
     payload: MeetCreateRequest,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
@@ -102,7 +102,7 @@ async def create_meet_room(
     response_model=MeetHistoryResponse,
     summary="List all generated Meet links relevant to the user",
 )
-async def list_meet_history(
+def list_meet_history(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
 ):

@@ -37,7 +37,7 @@ router = APIRouter(prefix="/api/v1/requests", tags=["requests"])
     status_code=status.HTTP_201_CREATED,
     summary="Submit a leave or WFH request",
 )
-async def create_request(
+def create_request(
     payload: RequestCreate,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
@@ -69,22 +69,29 @@ async def create_request(
     response_model=RequestListResponse,
     summary="List own leave / WFH requests",
 )
-async def list_my_requests(
+def list_my_requests(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
 ):
     """
-    Return all requests submitted by the authenticated user, sorted by
+    Return requests submitted by the authenticated user with pagination, sorted by
     `created_at` descending (most recent first).
     """
+    from sqlmodel import func
+    total = session.exec(select(func.count(LeaveWFHRequest.id)).where(LeaveWFHRequest.user_id == current_user.id)).one()
+
     statement = (
         select(LeaveWFHRequest)
         .where(LeaveWFHRequest.user_id == current_user.id)
         .order_by(desc(LeaveWFHRequest.created_at))
+        .offset(offset)
+        .limit(limit)
     )
     requests = session.exec(statement).all()
 
     return RequestListResponse(
-        total=len(requests),
+        total=total,
         requests=[RequestResponse.model_validate(r) for r in requests],
     )

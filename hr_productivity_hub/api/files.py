@@ -11,7 +11,9 @@ Security enforced:
 """
 
 import io
+import anyio
 import logging
+from utils.rate_limit import rate_limit
 import mimetypes
 import os
 import re
@@ -128,6 +130,7 @@ async def upload_file(
     file: UploadFile = File(..., description="Binary file to upload (max 50 MB)."),
     current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
     session: Session = Depends(get_session),
+    _rate_limit = Depends(rate_limit(5, 60)),
 ):
     """
     Upload a file to the employee's date-partitioned Google Drive folder.
@@ -156,14 +159,17 @@ async def upload_file(
 
     # --- 3. Resolve Drive date folder -----------------------------------------
     root_folder_id: str = settings.GOOGLE_DRIVE_ROOT_FOLDER_ID or "DRIVE_ROOT_NOT_CONFIGURED"
-    folder_id, folder_path = drive_client.get_or_create_date_folders(root_folder_id)
+    folder_id, folder_path = await anyio.to_thread.run_sync(
+        drive_client.get_or_create_date_folders, root_folder_id
+    )
 
     # --- 4. Upload to Drive ---------------------------------------------------
-    drive_file_id = drive_client.upload_file_stream(
-        file_stream=file_stream,
-        file_name=safe_name,
-        folder_id=folder_id,
-        mime_type=mime_type,
+    drive_file_id = await anyio.to_thread.run_sync(
+        drive_client.upload_file_stream,
+        file_stream,
+        safe_name,
+        folder_id,
+        mime_type,
     )
 
     # --- 5. Persist metadata --------------------------------------------------
@@ -191,7 +197,7 @@ async def upload_file(
     response_model=FileListResponse,
     summary="List files uploaded by the authenticated employee",
 )
-async def list_my_files(
+def list_my_files(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
     session: Session = Depends(get_session),
 ):

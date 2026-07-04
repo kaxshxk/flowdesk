@@ -11,8 +11,10 @@ Three endpoints forming the Google Chat sync layer:
 import hashlib
 import hmac
 import logging
+import anyio
 from datetime import datetime
 from typing import Optional
+from utils.rate_limit import rate_limit
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlmodel import Session, select
@@ -112,10 +114,11 @@ def _verify_pubsub_jwt(authorization: Optional[str]) -> bool:
     status_code=status.HTTP_201_CREATED,
     summary="Send a message to a Google Chat space",
 )
-async def send_message(
+def send_message(
     payload: SendMessageRequest,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
+    _rate_limit = Depends(rate_limit(30, 60)),
 ):
     """
     Relay a message to a Google Chat space and persist the outbound record.
@@ -161,7 +164,7 @@ async def send_message(
     response_model=ChatHistoryResponse,
     summary="Retrieve chat history for a specific space",
 )
-async def get_chat_history(
+def get_chat_history(
     space_id: str,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
@@ -259,9 +262,11 @@ async def chat_webhook(
 
     # --- Idempotency/Deduplication check ----------------------------------
     if message_name:
-        existing = session.exec(
-            select(ChatMessage).where(ChatMessage.google_message_name == message_name)
-        ).first()
+        def get_existing(sess: Session):
+            return sess.exec(
+                select(ChatMessage).where(ChatMessage.google_message_name == message_name)
+            ).first()
+        existing = await anyio.to_thread.run_sync(get_existing, session)
         if existing:
             logger.info("Duplicate webhook event received for message '%s'. Acknowledging with 200.", message_name)
             return WebhookAck(status="ok", detail="Duplicate event ignored.")
@@ -269,8 +274,10 @@ async def chat_webhook(
     # --- Resolve sender to a local User record ----------------------------
     resolved_user_id: int = 0  # Fallback sentinel for unknown senders.
     if sender_email:
-        stmt = select(User).where(User.company_email == sender_email)
-        local_user: Optional[User] = session.exec(stmt).first()
+        def get_user(sess: Session):
+            stmt = select(User).where(User.company_email == sender_email)
+            return sess.exec(stmt).first()
+        local_user = await anyio.to_thread.run_sync(get_user, session)
         if local_user:
             resolved_user_id = local_user.id
         else:
@@ -281,16 +288,21 @@ async def chat_webhook(
             )
 
     # --- Persist inbound message ------------------------------------------
-    inbound_msg = ChatMessage(
-        user_id=resolved_user_id,
-        space_id=space_id,
-        message_text=message_text,
-        direction=MessageDirection.INBOUND,
-        timestamp=datetime.utcnow(),
-        google_message_name=message_name or None,
-    )
-    session.add(inbound_msg)
-    session.commit()
+    def save_message(sess: Session) -> ChatMessage:
+        inbound_msg = ChatMessage(
+            user_id=resolved_user_id,
+            space_id=space_id,
+            message_text=message_text,
+            direction=MessageDirection.INBOUND,
+            timestamp=datetime.utcnow(),
+            google_message_name=message_name or None,
+        )
+        sess.add(inbound_msg)
+        sess.commit()
+        sess.refresh(inbound_msg)
+        return inbound_msg
+
+    inbound_msg = await anyio.to_thread.run_sync(save_message, session)
 
     logger.info(
         "Inbound message from '%s' in space '%s' stored (id=%s, name=%s).",

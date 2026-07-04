@@ -46,7 +46,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
     session: Session = Depends(get_session)
 ) -> User:
@@ -86,7 +86,7 @@ def require_role(allowed_roles: list[UserRole]):
     return role_checker
 
 
-async def authenticate_user_via_google(
+def authenticate_user_via_google(
     token: str,
     session: Session = Depends(get_session)
 ) -> dict:

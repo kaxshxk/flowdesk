@@ -4,9 +4,13 @@ from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
 import logging
 
+from utils.logging import setup_logging, CorrelationIdMiddleware
+from core.config import settings
+
+# Initialize structured or dev logging based on environment mode
+setup_logging(dev_mode=settings.DEV_MODE)
 logger = logging.getLogger(__name__)
 
-from core.config import settings
 from core.database import engine
 from api.routes import router
 from api.hr import router as hr_router
@@ -26,15 +30,25 @@ from models.meetlog import MeetLog
 from models.alertlog import AlertLog
 
 
+from alembic.config import Config
+from alembic import command
+import os
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create DB tables on startup; log a warning if the DB is unreachable."""
+    """Run database migrations on startup; log a warning if the DB is unreachable."""
     try:
-        SQLModel.metadata.create_all(engine)
-        logger.info("Database tables created / verified.")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        ini_path = os.path.join(base_dir, "alembic.ini")
+        alembic_cfg = Config(ini_path)
+        # Ensure alembic config uses the absolute path for the migration script folder
+        alembic_cfg.set_main_option("script_location", os.path.join(base_dir, "alembic"))
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Database migrations successfully applied to head.")
     except Exception as exc:
         logger.warning(
-            "Could not connect to the database on startup: %s. "
+            "Could not connect to the database or apply migrations on startup: %s. "
             "Endpoints requiring DB access will fail until a connection is available.",
             exc,
         )
@@ -48,16 +62,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Register Correlation ID Middleware
+app.add_middleware(CorrelationIdMiddleware)
 
-# Set up CORS
+# Set up CORS with production lockdown
 if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    origins = settings.BACKEND_CORS_ORIGINS
+    if not settings.DEV_MODE:
+        # Production mode: remove wildcard from allowed origins
+        if "*" in origins:
+            logger.warning("CORS wildcard '*' detected in production mode. Restricting and removing wildcard.")
+            origins = [o for o in origins if o != "*"]
+            
+    if origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
 
 from fastapi.responses import JSONResponse

@@ -70,7 +70,7 @@ class UserStatusUpdate(BaseModel):
 
 # HR Whitelist Management Endpoints
 @router.post("/whitelist", response_model=WhitelistResponse, status_code=status.HTTP_201_CREATED)
-async def create_whitelist_entry(
+def create_whitelist_entry(
     whitelist_data: WhitelistCreate,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
@@ -110,7 +110,7 @@ async def create_whitelist_entry(
 
 
 @router.get("/whitelist", response_model=List[WhitelistResponse])
-async def get_whitelist(
+def get_whitelist(
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -134,7 +134,7 @@ async def get_whitelist(
 
 
 @router.delete("/whitelist/{whitelist_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_whitelist_entry(
+def delete_whitelist_entry(
     whitelist_id: int,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
@@ -159,7 +159,7 @@ async def delete_whitelist_entry(
 
 # HR Employee Roster & Lifecycle Endpoints
 @router.get("/employees", response_model=List[UserResponse])
-async def get_employees(
+def get_employees(
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -183,7 +183,7 @@ async def get_employees(
 
 
 @router.patch("/users/{user_id}/role", status_code=status.HTTP_200_OK)
-async def update_user_role(
+def update_user_role(
     user_id: int,
     role_update: UserRoleUpdate,
     current_user: User = Depends(require_role([UserRole.HR])),
@@ -231,7 +231,7 @@ async def update_user_role(
 
 
 @router.patch("/users/{user_id}/status", status_code=status.HTTP_200_OK)
-async def update_user_status(
+def update_user_status(
     user_id: int,
     status_update: UserStatusUpdate,
     current_user: User = Depends(require_role([UserRole.HR])),
@@ -282,8 +282,10 @@ async def update_user_status(
 
 # HR Task Ledger Endpoint
 @router.get("/tasks/{user_id}", response_model=TaskListResponse)
-async def get_user_task_ledger(
+def get_user_task_ledger(
     user_id: int,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
 ):
@@ -301,23 +303,30 @@ async def get_user_task_ledger(
             detail=f"User with id {user_id} not found",
         )
 
+    from sqlmodel import func
+    total = session.exec(select(func.count(TaskLog.id)).where(TaskLog.user_id == user_id)).one()
+
     statement = (
         select(TaskLog)
         .where(TaskLog.user_id == user_id)
         .order_by(desc(TaskLog.timestamp))
+        .offset(offset)
+        .limit(limit)
     )
     tasks = session.exec(statement).all()
 
     return TaskListResponse(
-        total=len(tasks),
+        total=total,
         tasks=[TaskResponse.model_validate(t) for t in tasks],
     )
 
 
 # HR File Catalog Endpoint
 @router.get("/files/{user_id}", response_model=FileListResponse)
-async def get_user_file_catalog(
+def get_user_file_catalog(
     user_id: int,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
 ):
@@ -334,22 +343,27 @@ async def get_user_file_catalog(
             detail=f"User with id {user_id} not found",
         )
 
+    from sqlmodel import func
+    total = session.exec(select(func.count(FileLog.id)).where(FileLog.user_id == user_id)).one()
+
     statement = (
         select(FileLog)
         .where(FileLog.user_id == user_id)
         .order_by(desc(FileLog.timestamp))
+        .offset(offset)
+        .limit(limit)
     )
     files = session.exec(statement).all()
 
     return FileListResponse(
-        total=len(files),
+        total=total,
         files=[FileLogResponse.model_validate(f) for f in files],
     )
 
 
 # HR Time stats & logs endpoints for individual employee detail dashboards
 @router.get("/time/stats/{user_id}", response_model=HRTimeStatsResponse)
-async def get_user_time_stats(
+def get_user_time_stats(
     user_id: int,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
@@ -380,8 +394,10 @@ async def get_user_time_stats(
 
 
 @router.get("/time/logs/{user_id}", response_model=List[TimeLogResponse])
-async def get_user_time_logs(
+def get_user_time_logs(
     user_id: int,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -399,6 +415,8 @@ async def get_user_time_logs(
         select(TimeLog)
         .where(TimeLog.user_id == user_id)
         .order_by(desc(TimeLog.clock_in))
+        .offset(offset)
+        .limit(limit)
     )
     time_logs = session.exec(statement).all()
     return time_logs
@@ -411,12 +429,14 @@ async def get_user_time_logs(
 
 
 @router.get("/requests", response_model=RequestListResponse)
-async def list_all_requests(
+def list_all_requests(
     status_filter: Optional[RequestStatus] = Query(
         default=None,
         alias="status",
         description="Filter by request status: 'pending', 'approved', or 'declined'.",
     ),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
 ):
@@ -427,15 +447,20 @@ async def list_all_requests(
     e.g. `GET /api/v1/hr/requests?status=pending`.
     Results are sorted by `created_at` descending.
     """
-    statement = select(LeaveWFHRequest).order_by(desc(LeaveWFHRequest.created_at))
+    from sqlmodel import func
+    count_stmt = select(func.count(LeaveWFHRequest.id))
+    if status_filter is not None:
+        count_stmt = count_stmt.where(LeaveWFHRequest.status == status_filter)
+    total = session.exec(count_stmt).one()
 
+    statement = select(LeaveWFHRequest).order_by(desc(LeaveWFHRequest.created_at))
     if status_filter is not None:
         statement = statement.where(LeaveWFHRequest.status == status_filter)
 
-    requests = session.exec(statement).all()
+    requests = session.exec(statement.offset(offset).limit(limit)).all()
 
     return RequestListResponse(
-        total=len(requests),
+        total=total,
         requests=[RequestResponse.model_validate(r) for r in requests],
     )
 
@@ -445,7 +470,7 @@ async def list_all_requests(
     response_model=RequestResponse,
     summary="Approve or decline a leave / WFH request",
 )
-async def review_request(
+def review_request(
     request_id: int,
     payload: RequestReview,
     current_user: User = Depends(require_role([UserRole.HR])),
@@ -511,7 +536,9 @@ async def review_request(
 
 
 @router.get("/alerts", response_model=AlertListResponse)
-async def list_alerts(
+def list_alerts(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
 ):
@@ -519,17 +546,20 @@ async def list_alerts(
     Get a consolidated feed of all alert log entries, sorted by timestamp
     descending (newest first) for real-time security monitoring (HR only).
     """
-    statement = select(AlertLog).order_by(desc(AlertLog.timestamp))
+    from sqlmodel import func
+    total = session.exec(select(func.count(AlertLog.id))).one()
+
+    statement = select(AlertLog).order_by(desc(AlertLog.timestamp)).offset(offset).limit(limit)
     alerts = session.exec(statement).all()
 
     return AlertListResponse(
-        total=len(alerts),
+        total=total,
         alerts=[AlertLogResponse.model_validate(a) for a in alerts],
     )
 
 
 @router.post("/alerts/{alert_id}/resolve", response_model=AlertLogResponse)
-async def resolve_alert(
+def resolve_alert(
     alert_id: int,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
@@ -553,7 +583,7 @@ async def resolve_alert(
 
 
 @router.post("/integrity/trigger/{user_id}", response_model=IntegrityTriggerResponse)
-async def trigger_integrity_check(
+def trigger_integrity_check(
     user_id: int,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
@@ -633,7 +663,7 @@ async def trigger_integrity_check(
 
 
 @router.get("/dashboard/summary", response_model=HRDashboardSummary)
-async def get_dashboard_summary(
+def get_dashboard_summary(
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session),
 ):
@@ -665,7 +695,7 @@ async def get_dashboard_summary(
 
 
 @router.get("/reports/payroll")
-async def get_payroll_report(
+def get_payroll_report(
     start_date: Optional[date] = Query(default=None, description="Report start window"),
     end_date: Optional[date] = Query(default=None, description="Report end window"),
     format: Optional[str] = Query(default="json", description="Response format: 'json' or 'csv'"),
@@ -680,33 +710,68 @@ async def get_payroll_report(
     stmt = select(User).where(User.role == UserRole.EMPLOYEE)
     employees = session.exec(stmt).all()
 
+    if not employees:
+        return PayrollReportResponse(
+            total=0,
+            start_date=start_date,
+            end_date=end_date,
+            records=[],
+        )
+
+    emp_ids = [emp.id for emp in employees]
+
+    # Batch Fetch Time Logs
+    time_stmt = select(TimeLog).where(TimeLog.user_id.in_(emp_ids)).where(TimeLog.clock_out.isnot(None))
+    if start_date:
+        start_dt = datetime.combine(start_date, datetime.min.time())
+        time_stmt = time_stmt.where(TimeLog.clock_in >= start_dt)
+    if end_date:
+        end_dt = datetime.combine(end_date, datetime.max.time())
+        time_stmt = time_stmt.where(TimeLog.clock_out <= end_dt)
+
+    time_logs = session.exec(time_stmt).all()
+    time_logs_by_user = {}
+    for log in time_logs:
+        time_logs_by_user.setdefault(log.user_id, []).append(log)
+
+    # Batch Fetch Requests
+    req_stmt = select(LeaveWFHRequest).where(LeaveWFHRequest.user_id.in_(emp_ids)).where(LeaveWFHRequest.status == RequestStatus.APPROVED)
+    requests = session.exec(req_stmt).all()
+    requests_by_user = {}
+    for req in requests:
+        requests_by_user.setdefault(req.user_id, []).append(req)
+
+    # Batch Fetch Task Logs
+    task_stmt = select(TaskLog).where(TaskLog.user_id.in_(emp_ids))
+    if start_date:
+        start_dt = datetime.combine(start_date, datetime.min.time())
+        task_stmt = task_stmt.where(TaskLog.timestamp >= start_dt)
+    if end_date:
+        end_dt = datetime.combine(end_date, datetime.max.time())
+        task_stmt = task_stmt.where(TaskLog.timestamp <= end_dt)
+
+    task_logs = session.exec(task_stmt).all()
+    tasks_count_by_user = {}
+    for task in task_logs:
+        tasks_count_by_user[task.user_id] = tasks_count_by_user.get(task.user_id, 0) + 1
+
     records = []
 
     for emp in employees:
         # A. Total Regular Hours Worked
-        time_stmt = select(TimeLog).where(TimeLog.user_id == emp.id).where(TimeLog.clock_out.isnot(None))
-        if start_date:
-            start_dt = datetime.combine(start_date, datetime.min.time())
-            time_stmt = time_stmt.where(TimeLog.clock_in >= start_dt)
-        if end_date:
-            end_dt = datetime.combine(end_date, datetime.max.time())
-            time_stmt = time_stmt.where(TimeLog.clock_out <= end_dt)
-
-        time_logs = session.exec(time_stmt).all()
+        emp_time_logs = time_logs_by_user.get(emp.id, [])
         hours_worked = 0.0
-        for log in time_logs:
+        for log in emp_time_logs:
             if log.clock_out:
                 duration = log.clock_out - log.clock_in
                 hours_worked += duration.total_seconds() / 3600.0
 
         # B. Count of Approved Leave / WFH days
-        req_stmt = select(LeaveWFHRequest).where(LeaveWFHRequest.user_id == emp.id).where(LeaveWFHRequest.status == RequestStatus.APPROVED)
-        requests = session.exec(req_stmt).all()
-
+        emp_requests = requests_by_user.get(emp.id, [])
         leave_days = 0
         wfh_days = 0
 
-        for req in requests:
+        for req in emp_requests:
             # Calculate overlapping days with start_date & end_date query window
             eff_start = max(req.start_date, start_date) if start_date else req.start_date
             eff_end = min(req.end_date, end_date) if end_date else req.end_date
@@ -719,14 +784,7 @@ async def get_payroll_report(
                     wfh_days += days_count
 
         # C. Total Tasks Logged (ledger entries)
-        task_stmt = select(TaskLog).where(TaskLog.user_id == emp.id)
-        if start_date:
-            start_dt = datetime.combine(start_date, datetime.min.time())
-            task_stmt = task_stmt.where(TaskLog.timestamp >= start_dt)
-        if end_date:
-            end_dt = datetime.combine(end_date, datetime.max.time())
-            task_stmt = task_stmt.where(TaskLog.timestamp <= end_dt)
-        tasks_count = len(session.exec(task_stmt).all())
+        tasks_count = tasks_count_by_user.get(emp.id, 0)
 
         records.append(
             PayrollReportItem(
@@ -737,7 +795,7 @@ async def get_payroll_report(
                 approved_wfh_days=wfh_days,
                 tasks_logged_count=tasks_count,
             )
-        )
+		)
 
     # Return CSV if requested
     if format.lower() == "csv":

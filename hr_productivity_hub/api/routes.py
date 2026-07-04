@@ -8,6 +8,7 @@ from services.auth import authenticate_user_via_google, get_current_user, requir
 from models.user import User, AccessWhitelist, UserRole
 from datetime import timedelta
 from core.config import settings
+from utils.rate_limit import rate_limit
 
 
 router = APIRouter(prefix="/api/v1")
@@ -33,23 +34,28 @@ class TokenResponse(BaseModel):
 class HealthCheck(BaseModel):
     status: str
     timestamp: str
+    database: str
+    google_sheets: str
+    google_drive: str
 
 
 @router.post("/auth/google", response_model=TokenResponse)
-async def google_auth(
+def google_auth(
     request: GoogleAuthRequest,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    _rate_limit = Depends(rate_limit(5, 60)),
 ):
     """
     Authenticate user via Google OIDC.
     """
-    return await authenticate_user_via_google(request.token, session)
+    return authenticate_user_via_google(request.token, session)
 
 
 @router.post("/auth/mock-login", response_model=TokenResponse)
-async def mock_login(
+def mock_login(
     request: MockLoginRequest,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    _rate_limit = Depends(rate_limit(10, 60)),
 ):
     """
     DEV ONLY: Bypass Google OAuth. Accept any email+role and return a real JWT.
@@ -101,20 +107,67 @@ async def mock_login(
 
 
 @router.get("/health", response_model=HealthCheck)
-async def health_check():
+def health_check(session: Session = Depends(get_session)):
     """
-    Health check endpoint.
+    Health check endpoint. Validates DB connection and pings Google APIs.
     """
     from datetime import datetime
+    from sqlmodel import text
+    from services.google_sheets import sheets_client
+    from services.google_drive import drive_client
+
+    # 1. Database Liveliness Check
+    db_status = "healthy"
+    try:
+        session.exec(text("SELECT 1")).one()
+    except Exception as exc:
+        db_status = f"unhealthy: {exc}"
+
+    # 2. Google Sheets Liveliness Check
+    sheets_status = "healthy"
+    if sheets_client._mock_mode:
+        sheets_status = "mock_mode (disabled)"
+    else:
+        try:
+            # Ping fallback sheet metadata
+            sheet_id = settings.FALLBACK_SHEET_ID
+            if sheet_id and sheet_id != "FALLBACK_NOT_CONFIGURED":
+                sheets_client.service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+            else:
+                sheets_status = "healthy (no fallback sheet configured)"
+        except Exception as exc:
+            sheets_status = f"unhealthy: {exc}"
+
+    # 3. Google Drive Liveliness Check
+    drive_status = "healthy"
+    if drive_client._mock_mode:
+        drive_status = "mock_mode (disabled)"
+    else:
+        try:
+            # Minimal list call to test access
+            drive_client.service.files().list(pageSize=1).execute()
+        except Exception as exc:
+            drive_status = f"unhealthy: {exc}"
+
+    is_healthy = (
+        db_status == "healthy"
+        and "unhealthy" not in sheets_status
+        and "unhealthy" not in drive_status
+    )
+    status_str = "healthy" if is_healthy else "unhealthy"
+
     return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "status": status_str,
+        "timestamp": datetime.utcnow().isoformat(),
+        "database": db_status,
+        "google_sheets": sheets_status,
+        "google_drive": drive_status,
     }
 
 
 # Protected route
 @router.get("/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
+def read_users_me(current_user: User = Depends(get_current_user)):
     """
     Get current user info.
     """
@@ -123,7 +176,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 
 # Role-protected route
 @router.get("/hr/dashboard")
-async def hr_dashboard(current_user: User = Depends(require_role([UserRole.HR]))):
+def hr_dashboard(current_user: User = Depends(require_role([UserRole.HR]))):
     """
     HR dashboard - only accessible by HR users.
     """

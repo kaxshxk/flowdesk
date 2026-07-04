@@ -100,7 +100,7 @@ def calculate_total_hours(
 
 
 @router.get("/status", response_model=TimeStatusResponse)
-async def get_time_status(
+def get_time_status(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -125,7 +125,7 @@ async def get_time_status(
 
 
 @router.post("/clock-in", response_model=TimeLogResponse, status_code=status.HTTP_201_CREATED)
-async def clock_in(
+def clock_in(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -163,7 +163,7 @@ async def clock_in(
 
 
 @router.post("/clock-out", response_model=TimeLogResponse)
-async def clock_out(
+def clock_out(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -201,7 +201,7 @@ async def clock_out(
 
 
 @router.get("/stats", response_model=TimeStatsResponse)
-async def get_time_stats(
+def get_time_stats(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
 ):
@@ -230,7 +230,7 @@ async def get_time_stats(
 
 # HR-only endpoint
 @router.get("/stats/{user_id}", response_model=HRTimeStatsResponse)
-async def get_user_time_stats(
+def get_user_time_stats(
     user_id: int,
     current_user: User = Depends(require_role([UserRole.HR])),
     session: Session = Depends(get_session)

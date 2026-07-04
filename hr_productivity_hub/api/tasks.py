@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 from sqlalchemy import desc
 from typing import List
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-async def create_task(
+def create_task(
     payload: TaskCreate,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
     session: Session = Depends(get_session),
@@ -80,22 +80,29 @@ async def create_task(
 
 
 @router.get("", response_model=TaskListResponse)
-async def list_my_tasks(
+def list_my_tasks(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
     session: Session = Depends(get_session),
 ):
     """
-    Return all tasks logged by the authenticated employee, sorted by
+    Return tasks logged by the authenticated employee with pagination, sorted by
     timestamp descending (most recent first).
     """
+    from sqlmodel import func
+    total = session.exec(select(func.count(TaskLog.id)).where(TaskLog.user_id == current_user.id)).one()
+
     statement = (
         select(TaskLog)
         .where(TaskLog.user_id == current_user.id)
         .order_by(desc(TaskLog.timestamp))
+        .offset(offset)
+        .limit(limit)
     )
     tasks = session.exec(statement).all()
 
     return TaskListResponse(
-        total=len(tasks),
+        total=total,
         tasks=[TaskResponse.model_validate(t) for t in tasks],
     )
