@@ -1,0 +1,31 @@
+# ── FlowDesk: HR-Productivity Hub ─────────────────────────────────────────────
+# Monorepo root .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── OS / Editor noise ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+
+# ── Python backend ─────────────────────────────────────────────────────────────
+hr_productivity_hub/__pycache__/
+hr_productivity_hub/**/__pycache__/
+hr_productivity_hub/*.pyc
+hr_productivity_hub/**/*.pyc
+hr_productivity_hub/venv/
+hr_productivity_hub/.env
+
+# ── Next.js frontend ───────────────────────────────────────────────────────────
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.production
+
+# ── Root env / secrets ────────────────────────────────────────────────────────
+.env
+*.pem
+*.json.key
+service-account*.json
