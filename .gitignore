@@ -17,6 +17,7 @@ hr_productivity_hub/*.pyc
 hr_productivity_hub/**/*.pyc
 hr_productivity_hub/venv/
 hr_productivity_hub/.env
+hr_productivity_hub/*.db
 
 # ── Next.js frontend ───────────────────────────────────────────────────────────
 frontend/.next/

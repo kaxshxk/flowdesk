@@ -208,7 +208,7 @@ export default function RequestCenter() {
                       <td className="py-3.5 px-4 text-xs text-slate-400">
                         {req.start_date} to {req.end_date}
                       </td>
-                      <td className="py-3.5 px-4 text-xs">{req.employee_note || "—"}</td>
+                      <td className="py-3.5 px-4 text-xs">{req.employee_note || "-"}</td>
                       <td className="py-3.5 px-4">{getStatusBadge(req.status)}</td>
                       <td className="py-3.5 px-4 text-xs">
                         {req.hr_note ? (

@@ -4,7 +4,7 @@ import RouteGuard from "@/components/RouteGuard";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FlowDesk — HR-Productivity Hub",
+  title: "FlowDesk - HR-Productivity Hub",
   description: "Secure, real-time HR portal, task audits, activity verification, and workspace management.",
 };
 

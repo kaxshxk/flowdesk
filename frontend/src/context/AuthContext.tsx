@@ -35,6 +35,8 @@ interface AuthContextType {
   loading: boolean;
   /** Exchange a Google OIDC credential for a backend JWT and persist the session. */
   loginWithCredential: (credential: string) => Promise<void>;
+  /** Exchange mock credentials for a dev backend JWT and update the context state. */
+  loginWithMock: (email: string, role: string) => Promise<void>;
   /** Drop the active session and return to /login. */
   logout: () => void;
 }
@@ -80,13 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem("token");
     if (stored) {
-      const payload = parseJwt<{ sub?: string; email?: string; role?: string }>(
+      const payload = parseJwt<{ user_id?: number; email?: string; role?: string }>(
         stored
       );
       if (payload) {
         setToken(stored);
         setUser({
-          id: payload.sub ? parseInt(payload.sub, 10) : 0,
+          id: payload.user_id ? Number(payload.user_id) : 0,
           email: payload.email ?? "",
           role: (payload.role as "hr" | "employee") ?? "employee",
         });
@@ -135,6 +137,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [router]
   );
 
+  const loginWithMock = useCallback(
+    async (email: string, role: string) => {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/mock-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), role }),
+      });
+
+      if (!res.ok) {
+        let detail = "Authentication failed. Please try again.";
+        try {
+          const data = await res.json();
+          detail = data.detail || detail;
+        } catch {
+          /* keep default message */
+        }
+        const err = new Error(detail) as Error & { status?: number };
+        err.status = res.status;
+        throw err;
+      }
+
+      const data: AuthResult = await res.json();
+
+      localStorage.setItem("token", data.access_token);
+      setToken(data.access_token);
+      justLoggedIn.current = true;
+      setUser({
+        id: data.user_id,
+        email: data.email,
+        role: data.role as "hr" | "employee",
+      });
+      // Redirect immediately here rather than in a side-effect
+      router.push(data.role === "hr" ? "/hr/dashboard" : "/employee/dashboard");
+    },
+    [router]
+  );
+
   /* ---- Redirect only on explicit login (not on localStorage hydration) ---- */
   useEffect(() => {
     if (!user || !justLoggedIn.current) return;
@@ -151,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, loginWithCredential, logout }}
+      value={{ user, token, loading, loginWithCredential, loginWithMock, logout }}
     >
       {children}
     </AuthContext.Provider>

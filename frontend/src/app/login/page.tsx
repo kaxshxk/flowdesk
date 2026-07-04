@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
-const API_BASE = "http://localhost:8000/api/v1";
-
 export default function LoginPage() {
-  const { loginWithCredential } = useAuth();
+  const { loginWithMock } = useAuth();
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"hr" | "employee">("employee");
@@ -20,23 +18,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Call the dev mock-login endpoint directly
-      const res = await fetch(`${API_BASE}/auth/mock-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), role }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || `Login failed (${res.status})`);
-      }
-
-      const data = await res.json();
-      // Reuse the same loginWithCredential token-storage path by storing directly
-      localStorage.setItem("token", data.access_token);
-      // Redirect based on role
-      window.location.href = data.role === "hr" ? "/hr/dashboard" : "/employee/dashboard";
+      await loginWithMock(email, role);
     } catch (err: any) {
       setError(err.message || "Could not connect to backend. Is it running?");
     } finally {
@@ -75,7 +57,7 @@ export default function LoginPage() {
             Your unified workspace for HR management &amp; employee productivity
           </h2>
           <p className="text-lg text-indigo-100 leading-relaxed">
-            Attendance tracking, task auditing, activity verification, and real-time collaboration — all in one secure platform.
+            Attendance tracking, task auditing, activity verification, and real-time collaboration - all in one secure platform.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             {["Attendance Tracking", "Task Ledger", "File Vault", "Real-time Chat", "Audit Reports"].map((label) => (
@@ -120,7 +102,7 @@ export default function LoginPage() {
             {/* Dev mode banner */}
             <div className="flex items-center gap-2 p-3 mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400">
               <span>🔧</span>
-              <span><strong>Dev Mode</strong> — Google OAuth is not configured. Enter any email to access the platform.</span>
+              <span><strong>Dev Mode</strong> - Google OAuth is not configured. Enter any email to access the platform.</span>
             </div>
 
             {/* Error banner */}

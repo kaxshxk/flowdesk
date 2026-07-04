@@ -14,6 +14,14 @@ interface TimeStatus {
   last_clock_in: string | null;
 }
 
+interface TimeLog {
+  id: number;
+  user_id: number;
+  clock_in: string;
+  clock_out: string | null;
+  created_at: string;
+}
+
 export default function EmployeeDashboard() {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [lastClockIn, setLastClockIn] = useState<string | null>(null);
@@ -99,7 +107,7 @@ export default function EmployeeDashboard() {
         setLastClockIn(null);
       } else {
         // Clock In action
-        const clockRes = await api.post<any>("/time/clock-in");
+        const clockRes = await api.post<TimeLog>("/time/clock-in");
         setIsClockedIn(true);
         setLastClockIn(clockRes.clock_in);
       }

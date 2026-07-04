@@ -191,7 +191,7 @@ export default function HRDashboard() {
                       <td className="py-3.5 px-4 font-semibold text-slate-100">User #{req.user_id}</td>
                       <td className="py-3.5 px-4">{req.request_type === "leave" ? "🏖️ Leave" : "🏠 WFH"}</td>
                       <td className="py-3.5 px-4 text-xs text-slate-400">{req.start_date} to {req.end_date}</td>
-                      <td className="py-3.5 px-4 text-xs text-slate-400">{req.employee_note || "—"}</td>
+                      <td className="py-3.5 px-4 text-xs text-slate-400">{req.employee_note || "-"}</td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                           req.status === "approved"
@@ -292,7 +292,7 @@ export default function HRDashboard() {
                 <strong>Arrangement:</strong> {reviewingReq.request_type.toUpperCase()} ({reviewingReq.start_date} to {reviewingReq.end_date})
               </div>
               <div className="text-xs text-slate-400">
-                <strong>Employee note:</strong> {reviewingReq.employee_note || "—"}
+                <strong>Employee note:</strong> {reviewingReq.employee_note || "-"}
               </div>
             </div>
 

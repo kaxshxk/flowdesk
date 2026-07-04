@@ -340,7 +340,7 @@ export default function EmployeeDetailDashboard() {
                             {new Date(c.clock_in).toLocaleTimeString()}
                           </td>
                           <td className="py-3 px-3">
-                            {c.clock_out ? new Date(c.clock_out).toLocaleTimeString() : "—"}
+                            {c.clock_out ? new Date(c.clock_out).toLocaleTimeString() : "-"}
                           </td>
                           <td className="py-3 px-3 text-right text-indigo-400 font-semibold">
                             {c.clock_out ? calculateDuration(c.clock_in, c.clock_out) : "Active"}
