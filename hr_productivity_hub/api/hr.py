@@ -9,6 +9,7 @@ from datetime import datetime
 from core.config import settings
 from core.database import get_session
 from services.auth import require_role
+from utils.rate_limit import rate_limit
 from models.user import User, AccessWhitelist, UserRole
 from models.tasklog import TaskLog
 from models.filelog import FileLog
@@ -30,6 +31,9 @@ from datetime import date
 router = APIRouter(prefix="/api/v1/hr", tags=["hr"])
 
 
+from utils.validation import is_valid_email
+
+
 # Validation schemas
 class WhitelistCreate(BaseModel):
     allowed_email: str
@@ -37,9 +41,7 @@ class WhitelistCreate(BaseModel):
     
     @validator('allowed_email')
     def validate_email(cls, v):
-        # Basic email validation regex
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, v):
+        if not is_valid_email(v):
             raise ValueError('Invalid email format')
         return v
 
@@ -48,7 +50,7 @@ class WhitelistResponse(BaseModel):
     id: int
     allowed_email: str
     assigned_role: UserRole
-    created_by_hr_id: int
+    created_by_hr_id: Optional[int] = None
     created_at: str
 
 
@@ -69,7 +71,7 @@ class UserStatusUpdate(BaseModel):
 
 
 # HR Whitelist Management Endpoints
-@router.post("/whitelist", response_model=WhitelistResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/whitelist", response_model=WhitelistResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit(20, 60))])
 def create_whitelist_entry(
     whitelist_data: WhitelistCreate,
     current_user: User = Depends(require_role([UserRole.HR])),
@@ -469,6 +471,7 @@ def list_all_requests(
     "/requests/{request_id}/review",
     response_model=RequestResponse,
     summary="Approve or decline a leave / WFH request",
+    dependencies=[Depends(rate_limit(30, 60))]
 )
 def review_request(
     request_id: int,

@@ -31,11 +31,15 @@ router = APIRouter(prefix="/api/v1/requests", tags=["requests"])
 # ---------------------------------------------------------------------------
 
 
+from utils.rate_limit import rate_limit
+
+
 @router.post(
     "",
     response_model=RequestResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Submit a leave or WFH request",
+    dependencies=[Depends(rate_limit(10, 60))]
 )
 def create_request(
     payload: RequestCreate,

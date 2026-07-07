@@ -3,10 +3,10 @@ from sqlmodel import Session, select
 from models.user import User, AccessWhitelist, UserRole
 
 def test_whitelist_crud_and_guards(client, session: Session, hr_headers, employee_headers):
-    # Get initial whitelist
+    # Get initial whitelist (should have hr and employee entries seeded by fixtures)
     res = client.get("/api/v1/hr/whitelist", headers=hr_headers)
     assert res.status_code == 200
-    assert len(res.json()) == 0
+    assert len(res.json()) == 2
     
     # Create whitelist entry (HR role required)
     res = client.post(
@@ -61,9 +61,16 @@ def test_hr_safety_guards(client, session: Session, hr_headers, employee_headers
     
     # Verify another HR cannot deactivate the last active HR
     # First, let's create a second HR user
+    # Seed whitelist and user record for hr2
+    wl_hr2 = AccessWhitelist(allowed_email="hr2@dev.local", assigned_role=UserRole.HR)
+    session.add(wl_hr2)
+    session.commit()
+    usr_hr2 = User(company_email="hr2@dev.local", role=UserRole.HR, is_active=True)
+    session.add(usr_hr2)
+    session.commit()
     res = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "hr2@company.com", "role": "hr"}
+        json={"email": "hr2@dev.local", "role": "hr"}
     )
     hr2_token = res.json()["access_token"]
     hr2_headers = {"Authorization": f"Bearer {hr2_token}"}
@@ -87,9 +94,16 @@ def test_hr_safety_guards(client, session: Session, hr_headers, employee_headers
     # But since we can't authenticate as the inactive hr_id, we can't call HR endpoints as them.
     # Let's create an active employee, and let's try to demote/deactivate hr2 using hr2_headers (fails self-action).
     # What if we have another HR user hr3?
+    # Seed whitelist and user record for hr3
+    wl_hr3 = AccessWhitelist(allowed_email="hr3@dev.local", assigned_role=UserRole.HR)
+    session.add(wl_hr3)
+    session.commit()
+    usr_hr3 = User(company_email="hr3@dev.local", role=UserRole.HR, is_active=True)
+    session.add(usr_hr3)
+    session.commit()
     res = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "hr3@company.com", "role": "hr"}
+        json={"email": "hr3@dev.local", "role": "hr"}
     )
     hr3_token = res.json()["access_token"]
     hr3_headers = {"Authorization": f"Bearer {hr3_token}"}
@@ -114,9 +128,16 @@ def test_hr_safety_guards(client, session: Session, hr_headers, employee_headers
     # What if we try to demote hr2 using hr3's headers? hr3 is inactive, so it fails auth.
     # What if we create hr4, activate them, and try to demote hr2 using hr4?
     # Yes! Let's do that to verify the "last active HR remains" check works.
+    # Seed whitelist and user record for hr4
+    wl_hr4 = AccessWhitelist(allowed_email="hr4@dev.local", assigned_role=UserRole.HR)
+    session.add(wl_hr4)
+    session.commit()
+    usr_hr4 = User(company_email="hr4@dev.local", role=UserRole.HR, is_active=True)
+    session.add(usr_hr4)
+    session.commit()
     res = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "hr4@company.com", "role": "hr"}
+        json={"email": "hr4@dev.local", "role": "hr"}
     )
     hr4_token = res.json()["access_token"]
     hr4_headers = {"Authorization": f"Bearer {hr4_token}"}
@@ -137,9 +158,16 @@ def test_hr_safety_guards(client, session: Session, hr_headers, employee_headers
     
     # Now only hr4 is active HR. Let's create hr5 but keep it inactive (active=False)
     # We can create hr5 by mock-login, which defaults to active=True. Then deactivate it.
+    # Seed whitelist and user record for hr5
+    wl_hr5 = AccessWhitelist(allowed_email="hr5@dev.local", assigned_role=UserRole.HR)
+    session.add(wl_hr5)
+    session.commit()
+    usr_hr5 = User(company_email="hr5@dev.local", role=UserRole.HR, is_active=True)
+    session.add(usr_hr5)
+    session.commit()
     res = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "hr5@company.com", "role": "hr"}
+        json={"email": "hr5@dev.local", "role": "hr"}
     )
     hr5_token = res.json()["access_token"]
     hr5_headers = {"Authorization": f"Bearer {hr5_token}"}

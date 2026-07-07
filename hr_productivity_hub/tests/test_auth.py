@@ -18,31 +18,64 @@ def test_mock_login_creates_user(client, session: Session):
     # Enable mock login
     settings.ENABLE_MOCK_LOGIN = True
     
-    # Request token for employee
+    # 1. Reject if domain is invalid
     response = client.post(
         "/api/v1/auth/mock-login",
         json={"email": "employee@example.com", "role": "employee"}
+    )
+    assert response.status_code == 400
+
+    # 2. Reject if not whitelisted
+    response = client.post(
+        "/api/v1/auth/mock-login",
+        json={"email": "employee@dev.local", "role": "employee"}
+    )
+    assert response.status_code == 403
+
+    # Whitelist employee
+    wl = AccessWhitelist(allowed_email="employee@dev.local", assigned_role=UserRole.EMPLOYEE)
+    session.add(wl)
+    session.commit()
+
+    # 3. Reject if user does not exist in User table
+    response = client.post(
+        "/api/v1/auth/mock-login",
+        json={"email": "employee@dev.local", "role": "employee"}
+    )
+    assert response.status_code == 404
+
+    # Create user record
+    usr = User(company_email="employee@dev.local", role=UserRole.EMPLOYEE, is_active=True)
+    session.add(usr)
+    session.commit()
+
+    # 4. Correct login returns 200 and ignores provided role client-side if mismatch
+    response = client.post(
+        "/api/v1/auth/mock-login",
+        json={"email": "employee@dev.local", "role": "hr"} # Try spoofing HR
     )
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
-    assert data["email"] == "employee@example.com"
-    assert data["role"] == "employee"
-    
-    # Verify user exists in database
-    user = session.exec(select(User).where(User.company_email == "employee@example.com")).first()
-    assert user is not None
-    assert user.role == UserRole.EMPLOYEE
-    assert user.is_active is True
+    assert data["email"] == "employee@dev.local"
+    assert data["role"] == "employee" # Retained DB role
 
-def test_mock_login_disabled(client):
+def test_mock_login_disabled(client, session: Session):
     settings.ENABLE_MOCK_LOGIN = False
     
+    # Pre-populate whitelist & user to verify check stops at ENABLE_MOCK_LOGIN check
+    wl = AccessWhitelist(allowed_email="employee@dev.local", assigned_role=UserRole.EMPLOYEE)
+    session.add(wl)
+    usr = User(company_email="employee@dev.local", role=UserRole.EMPLOYEE, is_active=True)
+    session.add(usr)
+    session.commit()
+
     response = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "employee@example.com", "role": "employee"}
+        json={"email": "employee@dev.local", "role": "employee"}
     )
     assert response.status_code == 404
+
 
 def test_google_auth_whitelist_flow(client, session: Session):
     # Create an HR user first to satisfy the created_by_hr_id FK constraint

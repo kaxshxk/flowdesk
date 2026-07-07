@@ -124,7 +124,10 @@ def get_time_status(
         return TimeStatusResponse(is_clocked_in=False)
 
 
-@router.post("/clock-in", response_model=TimeLogResponse, status_code=status.HTTP_201_CREATED)
+from utils.rate_limit import rate_limit
+
+
+@router.post("/clock-in", response_model=TimeLogResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit(10, 60))])
 def clock_in(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
@@ -162,7 +165,7 @@ def clock_in(
     )
 
 
-@router.post("/clock-out", response_model=TimeLogResponse)
+@router.post("/clock-out", response_model=TimeLogResponse, dependencies=[Depends(rate_limit(10, 60))])
 def clock_out(
     current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session)
@@ -227,41 +230,3 @@ def get_time_stats(
         monthly_hours=monthly_hours
     )
 
-
-# HR-only endpoint
-@router.get("/stats/{user_id}", response_model=HRTimeStatsResponse)
-def get_user_time_stats(
-    user_id: int,
-    current_user: User = Depends(require_role([UserRole.HR])),
-    session: Session = Depends(get_session)
-):
-    """
-    Get weekly and monthly time stats for a specific user (HR only).
-    """
-    # Check if user exists
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    now = datetime.utcnow()
-    
-    # Get week range
-    week_start, week_end = get_week_range(now)
-    
-    # Get month range
-    month_start, month_end = get_month_range(now)
-    
-    # Calculate weekly hours
-    weekly_hours = calculate_total_hours(session, user_id, week_start, week_end)
-    
-    # Calculate monthly hours
-    monthly_hours = calculate_total_hours(session, user_id, month_start, month_end)
-    
-    return HRTimeStatsResponse(
-        user_id=user_id,
-        weekly_hours=weekly_hours,
-        monthly_hours=monthly_hours
-    )

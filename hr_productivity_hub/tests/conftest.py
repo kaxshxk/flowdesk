@@ -20,7 +20,7 @@ from main import app
 from core.database import get_session
 
 # Explicitly import all models so SQLModel.metadata knows about them
-from models.user import User, AccessWhitelist
+from models.user import User, AccessWhitelist, UserRole
 from models.timelog import TimeLog
 from models.tasklog import TaskLog
 from models.filelog import FileLog
@@ -30,9 +30,13 @@ from models.meetlog import MeetLog
 from models.alertlog import AlertLog
 
 @pytest.fixture(autouse=True)
-def reset_settings():
+def reset_settings(session: Session):
     settings.DEV_MODE = True
     settings.ENABLE_MOCK_LOGIN = True
+    # Clean database state to prevent fixture collisions
+    for table in reversed(SQLModel.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
 
 @pytest.fixture(name="session")
 def session_fixture():
@@ -66,19 +70,66 @@ def client_fixture(session: Session):
     app.dependency_overrides.clear()
 
 @pytest.fixture(name="hr_headers")
-def hr_headers_fixture(client):
+def hr_headers_fixture(client, session: Session):
+    # Ensure whitelist and user record exist
+    whitelist_entry = AccessWhitelist(
+        allowed_email="hr@dev.local",
+        assigned_role=UserRole.HR
+    )
+    session.add(whitelist_entry)
+    session.commit()
+    session.refresh(whitelist_entry)
+
+    hr_user = User(
+        company_email="hr@dev.local",
+        role=UserRole.HR,
+        is_active=True
+    )
+    session.add(hr_user)
+    session.commit()
+    session.refresh(hr_user)
+
     response = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "hr@company.com", "role": "hr"}
+        json={"email": "hr@dev.local", "role": "hr"}
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 @pytest.fixture(name="employee_headers")
-def employee_headers_fixture(client):
+def employee_headers_fixture(client, session: Session):
+    # Setup hr creator first
+    hr_user = User(
+        company_email="hr_creator@dev.local",
+        role=UserRole.HR,
+        is_active=True
+    )
+    session.add(hr_user)
+    session.commit()
+    session.refresh(hr_user)
+
+    whitelist_entry = AccessWhitelist(
+        allowed_email="employee@dev.local",
+        assigned_role=UserRole.EMPLOYEE,
+        created_by_hr_id=hr_user.id
+    )
+    session.add(whitelist_entry)
+    session.commit()
+    session.refresh(whitelist_entry)
+
+    emp_user = User(
+        company_email="employee@dev.local",
+        role=UserRole.EMPLOYEE,
+        is_active=True
+    )
+    session.add(emp_user)
+    session.commit()
+    session.refresh(emp_user)
+
     response = client.post(
         "/api/v1/auth/mock-login",
-        json={"email": "employee@company.com", "role": "employee"}
+        json={"email": "employee@dev.local", "role": "employee"}
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+

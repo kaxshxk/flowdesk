@@ -37,7 +37,22 @@ import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run database migrations on startup; log a warning if the DB is unreachable."""
+    """Run database migrations on startup; warn if DEV_MODE is active in production, or if DB is unreachable."""
+    # ── Security Audit Warning for Production Deployments ────────────────────
+    env = os.getenv("ENVIRONMENT", "production").strip().lower()
+    if settings.DEV_MODE and env not in ("development", "dev", "local"):
+        logger.warning(
+            "⚠️ CRITICAL SECURITY WARNING: DEV_MODE=True is detected in a non-development/production environment (%s)! "
+            "Google OAuth signature checks are bypassed. Please set DEV_MODE=False in your production .env file.",
+            env
+        )
+    if settings.ENABLE_MOCK_LOGIN and env not in ("development", "dev", "local"):
+        logger.warning(
+            "⚠️ CRITICAL SECURITY WARNING: ENABLE_MOCK_LOGIN=True is detected in a non-development/production environment (%s)! "
+            "Anyone can log in as HR or an employee bypassing whitelist checks. Disable this by setting ENABLE_MOCK_LOGIN=False.",
+            env
+        )
+
     try:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         ini_path = os.path.join(base_dir, "alembic.ini")

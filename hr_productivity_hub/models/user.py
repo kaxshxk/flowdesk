@@ -68,8 +68,8 @@ class AccessWhitelist(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     allowed_email: str = Field(unique=True, index=True)
     assigned_role: UserRole
-    created_by_hr_id: int = Field(foreign_key="user.id")
+    created_by_hr_id: Optional[int] = Field(default=None, foreign_key="user.id", nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationship to user
-    created_by: "User" = Relationship(back_populates="access_whitelist_entries")
+    created_by: Optional["User"] = Relationship(back_populates="access_whitelist_entries")

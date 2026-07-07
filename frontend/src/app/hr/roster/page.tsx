@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import TeamsShell from "@/components/TeamsShell";
 import { api } from "@/utils/api";
+import { isValidEmail } from "@/utils/validation";
 
 interface WhitelistEntry {
   id: number;
@@ -107,8 +108,7 @@ export default function WhitelistRoster() {
     if (!email) return;
 
     // Client-side email validation
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
       setError("Please enter a valid email address.");
       return;
     }

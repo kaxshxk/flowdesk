@@ -51,16 +51,21 @@ def google_auth(
     return authenticate_user_via_google(request.token, session)
 
 
+import logging
+from fastapi import Request
+
+logger = logging.getLogger(__name__)
+
+
 @router.post("/auth/mock-login", response_model=TokenResponse)
 def mock_login(
-    request: MockLoginRequest,
+    request_data: MockLoginRequest,
+    request: Request,
     session: Session = Depends(get_session),
     _rate_limit = Depends(rate_limit(10, 60)),
 ):
     """
-    DEV ONLY: Bypass Google OAuth. Accept any email+role and return a real JWT.
-    Creates the user in DB if they don't exist yet (no whitelist check).
-    Remove or gate behind an env flag before going to production.
+    DEV ONLY: Bypass Google OAuth. Requires whitelisted and registered dev email.
     """
     if not settings.ENABLE_MOCK_LOGIN:
         raise HTTPException(
@@ -68,37 +73,45 @@ def mock_login(
             detail="Mock login is disabled in this environment."
         )
 
-    email = request.email.strip().lower()
-    role_str = request.role.strip().lower()
+    email = request_data.email.strip().lower()
 
-    if role_str not in ("hr", "employee"):
+    # 1. Enforce specific dev email domains (@yourcompany.com or @dev.local)
+    if not (email.endswith("@yourcompany.com") or email.endswith("@dev.local")):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="role must be 'hr' or 'employee'"
+            detail="Mock login is restricted to dev domains (@yourcompany.com or @dev.local)."
         )
 
-    user_role = UserRole.HR if role_str == "hr" else UserRole.EMPLOYEE
+    # 2. Require the user to exist in the AccessWhitelist
+    whitelisted = session.exec(select(AccessWhitelist).where(AccessWhitelist.allowed_email == email)).first()
+    if not whitelisted:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email is not whitelisted for access."
+        )
 
-    # Fetch or create the user record
+    # 3. Require the user to already exist in the User table (no auto-create)
     user = session.exec(select(User).where(User.company_email == email)).first()
     if not user:
-        user = User(company_email=email, role=user_role, is_active=True)
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-    else:
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account is deactivated"
-            )
-        # Update role for mock login purposes if changed
-        if user.role != user_role:
-            user.role = user_role
-            session.add(user)
-            session.commit()
-            session.refresh(user)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User record not found. Please contact an administrator to register."
+        )
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is deactivated"
+        )
+
+    # 4. Log a warning every time mock login is successfully used with IP and email
+    ip_address = request.client.host if request.client else "unknown"
+    logger.warning(
+        "⚠️ SECURITY WARNING: Mock login used successfully. Email: %s, User ID: %d, Role: %s, IP: %s",
+        email, user.id, user.role, ip_address
+    )
+
+    # 5. Issue JWT using the user's database role directly (ignoring client role parameter)
     access_token = create_access_token(
         data={"user_id": user.id, "email": user.company_email, "role": user.role},
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -111,6 +124,7 @@ def mock_login(
         "email": user.company_email,
         "role": user.role,
     }
+
 
 
 @router.get("/health", response_model=HealthCheck)

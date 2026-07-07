@@ -14,10 +14,13 @@ from schemas.task import TaskCreate, TaskResponse, TaskListResponse
 from utils.security import generate_task_hmac
 
 
+from utils.rate_limit import rate_limit
+
+
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 
-@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit(60, 60))])
 def create_task(
     payload: TaskCreate,
     current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
