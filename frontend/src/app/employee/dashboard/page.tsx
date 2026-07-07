@@ -159,48 +159,50 @@ export default function EmployeeDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Time Clock Interface Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 flex flex-col justify-between items-center text-center shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+          <div className="bg-white border border-[#F1F5F9] rounded-3xl p-8 flex flex-col justify-between items-center text-center shadow-[0_8px_30px_rgb(0,0,0,0.015)] relative overflow-hidden min-h-[360px]">
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#4F46E5] to-[#818CF8]"></div>
             
             <div className="space-y-3 w-full">
               <span className="text-4xl block">🕒</span>
-              <h3 className="text-md font-bold text-slate-100">Time Clock Terminal</h3>
-              <p className="text-xs text-slate-400 leading-relaxed px-4">
+              <h3 className="text-lg font-extrabold text-[#1E293B] tracking-tight">Time Clock Terminal</h3>
+              <p className="text-xs text-slate-500 leading-relaxed px-4">
                 Verify your parameters and record shift timings. Double punches are automatically prevented.
               </p>
             </div>
 
             {/* Pulsing timer indicator */}
             {isClockedIn && lastClockIn && (
-              <div className="my-6 space-y-2">
-                <div className="text-xs text-emerald-400 font-semibold tracking-wide flex items-center justify-center gap-1.5 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <div className="my-6 space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-full text-xs font-semibold bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-[#E11D48]"></span>
                   Active Shift (Punch-in: {getStartDateString()})
                 </div>
-                <div className="text-xl font-extrabold text-slate-100 font-mono tracking-tight">
+                <div className="text-2xl font-extrabold text-[#E11D48] font-mono tracking-tight">
                   {elapsedTime || "Calculating..."}
                 </div>
               </div>
             )}
 
             {!isClockedIn && (
-              <div className="my-6 space-y-1">
-                <div className="text-xs text-slate-500 font-medium">Terminal Status</div>
-                <div className="text-sm font-bold text-slate-300">Ready to punch in</div>
+              <div className="my-6 space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-full text-xs font-semibold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0]">
+                  <span className="w-2 h-2 rounded-full bg-[#047857]"></span>
+                  Ready to punch in
+                </div>
               </div>
             )}
 
             <button
               onClick={handleClockToggle}
               disabled={btnLoading}
-              className={`w-full flex items-center justify-center gap-2 py-4 font-bold text-sm rounded-xl transition-all shadow-md ${
+              className={`w-full flex items-center justify-center gap-2 py-4 font-bold text-sm rounded-xl transition-all active:scale-[0.97] duration-200 ease-out shadow-sm border ${
                 isClockedIn
-                  ? "bg-amber-600/90 hover:bg-amber-500 shadow-amber-600/10 text-white animate-pulse"
-                  : "bg-emerald-600/90 hover:bg-emerald-500 shadow-emerald-600/10 text-white"
+                  ? "bg-[#FFF1F2] border-[#FECDD3] hover:bg-[#FFE4E6] text-[#E11D48]"
+                  : "bg-[#ECFDF5] border-[#A7F3D0] hover:bg-[#D1FAE5] text-[#047857]"
               } disabled:opacity-50`}
             >
               {btnLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
               ) : isClockedIn ? (
                 <>
                   <span>🛑</span>
@@ -218,27 +220,27 @@ export default function EmployeeDashboard() {
           {/* Aggregated Statistics Panels */}
           <div className="lg:col-span-2 flex flex-col gap-6 justify-between">
             {/* Card 1: Weekly metrics with work week progress meter */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between flex-1 relative overflow-hidden">
+            <div className="bg-white border border-[#F1F5F9] rounded-3xl p-6 md:p-8 flex flex-col justify-between flex-1 shadow-[0_8px_30px_rgb(0,0,0,0.015)] relative overflow-hidden">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Weekly Shift Summary</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">Goal: 40 hrs</span>
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF] font-semibold">Goal: 40 hrs</span>
                 </div>
-                <div className="text-3xl font-extrabold text-slate-100 tracking-tight mb-2">
-                  {stats.weekly_hours} <span className="text-xs text-slate-500 font-normal">hours logged</span>
+                <div className="text-3xl font-extrabold text-[#1E293B] tracking-tight mb-2">
+                  {stats.weekly_hours} <span className="text-xs text-slate-400 font-normal">hours logged</span>
                 </div>
                 <p className="text-xs text-slate-500 mb-6">Calculated for the current active workweek window (Mon - Sun).</p>
               </div>
 
               {/* Progress Indicator */}
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-semibold text-slate-400">
+                <div className="flex justify-between text-[10px] font-semibold text-slate-500">
                   <span>Weekly Goal Completion</span>
                   <span>{Math.round(weeklyProgressPercent)}%</span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-950 border border-slate-800/80 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                   <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                    className="h-full bg-gradient-to-r from-[#4F46E5] to-[#818CF8] rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${weeklyProgressPercent}%` }}
                   ></div>
                 </div>
@@ -246,15 +248,15 @@ export default function EmployeeDashboard() {
             </div>
 
             {/* Card 2: Monthly Accumulated hours */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-center justify-between flex-1 relative overflow-hidden">
+            <div className="bg-white border border-[#F1F5F9] rounded-3xl p-6 md:p-8 flex items-center justify-between flex-1 shadow-[0_8px_30px_rgb(0,0,0,0.015)] relative overflow-hidden">
               <div className="space-y-1.5">
                 <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Monthly Shift Summary</h4>
-                <div className="text-3xl font-extrabold text-slate-100 tracking-tight">
-                  {stats.monthly_hours} <span className="text-xs text-slate-500 font-normal">hours logged</span>
+                <div className="text-3xl font-extrabold text-[#1E293B] tracking-tight">
+                  {stats.monthly_hours} <span className="text-xs text-slate-400 font-normal">hours logged</span>
                 </div>
                 <p className="text-xs text-slate-500">Accumulated metrics computed across the current calendar month.</p>
               </div>
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center text-xl text-purple-400 shrink-0">
+              <div className="w-12 h-12 bg-[#EEF2FF] border border-[#E0E7FF] rounded-xl flex items-center justify-center text-xl text-[#4F46E5] shrink-0 shadow-sm shadow-[#EEF2FF]/50">
                 📅
               </div>
             </div>
