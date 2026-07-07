@@ -48,13 +48,13 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">FlowDesk</h1>
-            <p className="text-sm text-indigo-200 font-medium">HR &amp; Productivity Hub</p>
+            <p className="text-sm text-indigo-200 font-medium">HR & Productivity Hub</p>
           </div>
         </div>
 
         <div className="relative z-10 max-w-lg space-y-6">
           <h2 className="text-4xl font-extrabold text-white leading-tight">
-            Your unified workspace for HR management &amp; employee productivity
+            Your unified workspace for HR management & employee productivity
           </h2>
           <p className="text-lg text-indigo-100 leading-relaxed">
             Attendance tracking, task auditing, activity verification, and real-time collaboration - all in one secure platform.
@@ -87,7 +87,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-100">FlowDesk</h1>
-              <p className="text-xs text-slate-500 font-medium">HR &amp; Productivity Hub</p>
+              <p className="text-xs text-slate-500 font-medium">HR & Productivity Hub</p>
             </div>
           </div>
 
@@ -175,7 +175,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-center text-[11px] text-slate-600 mt-8">
-            © {new Date().getFullYear()} FlowDesk · HR &amp; Productivity Hub
+            © 2026 FlowDesk · HR & Productivity Hub
           </p>
         </div>
       </main>
