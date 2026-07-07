@@ -86,11 +86,18 @@ def mock_login(
         session.add(user)
         session.commit()
         session.refresh(user)
-    elif not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is deactivated"
-        )
+    else:
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is deactivated"
+            )
+        # Update role for mock login purposes if changed
+        if user.role != user_role:
+            user.role = user_role
+            session.add(user)
+            session.commit()
+            session.refresh(user)
 
     access_token = create_access_token(
         data={"user_id": user.id, "email": user.company_email, "role": user.role},

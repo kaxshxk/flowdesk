@@ -141,8 +141,8 @@ export default function GoogleSignButton({
         className={`
           w-full flex items-center justify-center gap-3
           h-12 px-6 rounded-lg
-          bg-white hover:bg-gray-50 active:bg-gray-100
-          text-gray-700 font-medium text-sm
+          bg-canvasBg hover:bg-canvasBg active:bg-canvasBg
+          text-contrastText font-medium text-sm
           border border-gray-300 shadow-sm
           transition-colors duration-150
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1

@@ -102,19 +102,19 @@ export default function EmployeeFileVault() {
   return (
     <TeamsShell title="Drive Vault & File Drop">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-100 font-sans">Google Drive Vault</h1>
-        <p className="text-sm text-slate-400 mt-1">Upload project materials. Files are dynamically sorted into date-partitioned Drive folders.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-contrastText font-sans">Google Drive Vault</h1>
+        <p className="text-sm text-contrastText/60 mt-1">Upload project materials. Files are dynamically sorted into date-partitioned Drive folders.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-          <span>⚠️</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-primaryAccent/15 rounded-2xl text-sm text-primaryAccent">
+          <span></span>
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-400">
-          <span>✅</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-successBadge rounded-2xl text-sm text-contrastText">
+          <span></span>
           <span>{success}</span>
         </div>
       )}
@@ -131,8 +131,8 @@ export default function EmployeeFileVault() {
             onClick={triggerFileInput}
             className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all min-h-[300px] shadow-sm relative overflow-hidden ${
               dragActive
-                ? "border-indigo-500 bg-indigo-500/5 shadow-indigo-500/5"
-                : "border-slate-800 bg-slate-900/60 hover:bg-slate-900/90 hover:border-slate-700"
+                ? "border-primaryAccent bg-primaryAccent/5 shadow-primaryAccent/5"
+                : "border-secondaryElement/20 bg-canvasBg/30 hover:bg-canvasBg/45 hover:border-secondaryElement/45"
             }`}
           >
             <input
@@ -145,15 +145,15 @@ export default function EmployeeFileVault() {
 
             {uploading ? (
               <div className="space-y-4 flex flex-col items-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500"></div>
-                <div className="text-xs text-slate-400 font-semibold animate-pulse">Syncing file metadata with Google Drive...</div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primaryAccent"></div>
+                <div className="text-xs text-contrastText/60 font-semibold animate-pulse">Syncing file metadata with Google Drive...</div>
               </div>
             ) : (
               <div className="space-y-4">
-                <span className="text-5xl block">📤</span>
+                <span className="text-5xl block"></span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-200">Drag & drop files here</h3>
-                  <p className="text-xs text-slate-500 mt-1">or click to browse local files (soft limit 20MB)</p>
+                  <h3 className="text-sm font-bold text-contrastText/90">Drag & drop files here</h3>
+                  <p className="text-xs text-contrastText/40 mt-1">or click to browse local files (soft limit 20MB)</p>
                 </div>
               </div>
             )}
@@ -161,48 +161,48 @@ export default function EmployeeFileVault() {
         </div>
 
         {/* Right Section / Explorer View */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-md">
-          <h3 className="text-md font-bold text-slate-100 mb-4">📁 Synced Cloud Directory</h3>
+        <div className="lg:col-span-2 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-6 shadow-md">
+          <h3 className="text-md font-bold text-contrastText mb-4"> Synced Cloud Directory</h3>
           
           {loading ? (
             <div className="space-y-4">
-              <div className="h-6 bg-slate-800 rounded w-1/4 animate-pulse"></div>
-              <div className="h-24 bg-slate-800 rounded animate-pulse"></div>
+              <div className="h-6 bg-canvasBg/25 rounded w-1/4 animate-pulse"></div>
+              <div className="h-24 bg-canvasBg/25 rounded animate-pulse"></div>
             </div>
           ) : files.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 space-y-2">
-              <span className="text-3xl block">📁</span>
+            <div className="text-center py-12 text-contrastText/40 space-y-2">
+              <span className="text-3xl block"></span>
               <p className="text-sm">Drive Vault is currently empty for this period.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase bg-slate-950/20">
+                  <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase bg-canvasBg/15">
                     <th className="py-3 px-4">Filename</th>
                     <th className="py-3 px-4">Upload Timestamp</th>
                     <th className="py-3 px-4">Drive Path</th>
                     <th className="py-3 px-4 text-right">Drive link</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
+                <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                   {files.map((file) => (
-                    <tr key={file.id} className="hover:bg-slate-800/40 transition-colors odd:bg-slate-950/10">
-                      <td className="py-4 px-4 font-semibold text-slate-100 truncate max-w-[200px]">{file.file_name}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400">
+                    <tr key={file.id} className="hover:bg-canvasBg/20 transition-colors odd:bg-canvasBg/10">
+                      <td className="py-4 px-4 font-semibold text-contrastText truncate max-w-[200px]">{file.file_name}</td>
+                      <td className="py-4 px-4 text-xs text-contrastText/60">
                         {new Date(file.timestamp).toLocaleString()}
                       </td>
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-primaryAccent/10 text-primaryAccent border border-primaryAccent/20">
                           {file.drive_folder_path}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right">
                         <span 
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-950 border border-slate-800 text-slate-400 select-none"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-canvasBg/35 border border-secondaryElement/20 text-contrastText/60 select-none"
                           title={`File ID: ${file.google_drive_file_id}`}
                         >
-                          🔗 Drive Linked
+                           Drive Linked
                         </span>
                       </td>
                     </tr>

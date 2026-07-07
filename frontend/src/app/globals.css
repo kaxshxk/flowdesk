@@ -1,46 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #F9FAFC;
-  --foreground: #1E293B;
+/* ── Tailwind v4: @theme registers tokens as utility classes ─────────────── */
+@theme {
+  /* Core brand palette */
+  --color-canvasBg:         #FFF7E6;
+  --color-contrastText:     #2D3A47;
+  --color-primaryAccent:    #B46A72;
+  --color-secondaryElement: #A9B7C6;
+  --color-softHighlight:    #F7C8D3;
+  --color-successBadge:     #A8B58A;
+
+  /* Functional layout aliases */
+  --color-cardBacking:    #A9B7C6;
+  --color-sidebarBacking: #2D3A47;
+
+  /* Legacy aliases (kept for backward compat) */
+  --color-vanilla-cream:   #FFF7E6;
+  --color-blush-petal:     #F7C8D3;
+  --color-rosewood:        #B46A72;
+  --color-sage-leaf:       #A8B58A;
+  --color-misty-sky:       #A9B7C6;
+  --color-midnight-lagoon: #2D3A47;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
+/* ── Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Outfit', sans-serif;
+  color: #2D3A47;
+  background: #FFF7E6;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Animations ─────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom scrollbars for SaaS aesthetic */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #E2E8F0;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1;
-}
+/* ── Scrollbars ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #A9B7C6; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #B46A72; }

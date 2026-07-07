@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased bg-[#F9FAFC] text-[#1E293B] min-h-screen">
+      <body className="antialiased min-h-screen">
         <AuthProvider>
           <RouteGuard>
             {children}

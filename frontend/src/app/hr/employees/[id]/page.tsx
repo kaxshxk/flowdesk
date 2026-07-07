@@ -118,7 +118,7 @@ export default function EmployeeDetailDashboard() {
         title: "Shift Started",
         detail: "Clocked in at start of shift segment.",
         icon: "🟢",
-        color: "text-emerald-400",
+        color: "text-contrastText",
       });
       if (c.clock_out) {
         events.push({
@@ -126,7 +126,7 @@ export default function EmployeeDetailDashboard() {
           timestamp: new Date(c.clock_out),
           title: "Shift Completed",
           detail: `Clocked out. Segment duration: ${calculateDuration(c.clock_in, c.clock_out)}.`,
-          icon: "🔴",
+          icon: "",
           color: "text-rose-400",
         });
       }
@@ -139,8 +139,8 @@ export default function EmployeeDetailDashboard() {
         timestamp: new Date(t.timestamp),
         title: "Task Logged & Signed",
         detail: t.description,
-        icon: "📝",
-        color: "text-indigo-400",
+        icon: "",
+        color: "text-primaryAccent",
       });
     });
 
@@ -151,7 +151,7 @@ export default function EmployeeDetailDashboard() {
         timestamp: new Date(f.timestamp),
         title: "File Vaulted to Drive",
         detail: `${f.file_name} inside Drive directory ${f.drive_folder_path}`,
-        icon: "📁",
+        icon: "",
         color: "text-sky-400",
       });
     });
@@ -174,8 +174,8 @@ export default function EmployeeDetailDashboard() {
       <TeamsShell title="Loading Employee Dossier...">
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="h-64 bg-slate-900 border border-slate-800 rounded-2xl animate-pulse"></div>
-            <div className="lg:col-span-2 h-96 bg-slate-900 border border-slate-800 rounded-2xl animate-pulse"></div>
+            <div className="h-64 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl animate-pulse"></div>
+            <div className="lg:col-span-2 h-96 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl animate-pulse"></div>
           </div>
         </div>
       </TeamsShell>
@@ -185,13 +185,13 @@ export default function EmployeeDetailDashboard() {
   if (error || !employee) {
     return (
       <TeamsShell title="Error Loading Dossier">
-        <div className="max-w-md mx-auto mt-12 bg-slate-900 border border-red-500/20 rounded-2xl p-6 text-center">
-          <div className="text-3xl mb-3">⚠️</div>
-          <h2 className="text-lg font-bold text-slate-100 mb-2">Error</h2>
-          <p className="text-sm text-slate-400 mb-6">{error || "User details could not be found."}</p>
+        <div className="max-w-md mx-auto mt-12 bg-cardBacking shadow-ambient border border-secondaryElement/20 border-primaryAccent/20 rounded-2xl p-6 text-center">
+          <div className="text-3xl mb-3"></div>
+          <h2 className="text-lg font-bold text-contrastText mb-2">Error</h2>
+          <p className="text-sm text-contrastText/60 mb-6">{error || "User details could not be found."}</p>
           <button
             onClick={() => router.push("/hr/roster")}
-            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 transition-colors font-semibold text-xs rounded-xl"
+            className="px-5 py-2 bg-primaryAccent hover:bg-primaryAccent/95 transition-colors font-semibold text-xs rounded-xl"
           >
             Return to Whitelist Roster
           </button>
@@ -206,31 +206,31 @@ export default function EmployeeDetailDashboard() {
     <TeamsShell title={`Employee Dossier: User #${employee.id}`}>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-100">{employee.company_email}</h1>
-          <p className="text-sm text-slate-400 mt-1">Lifecycle diagnostics, audit ledger logs, and synced activity feeds.</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-contrastText">{employee.company_email}</h1>
+          <p className="text-sm text-contrastText/60 mt-1">Lifecycle diagnostics, audit ledger logs, and synced activity feeds.</p>
         </div>
         <button
           onClick={() => router.push("/hr/roster")}
-          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs rounded-xl transition-all"
+          className="px-4 py-2 bg-canvasBg hover:bg-canvasBg/30 border border-secondaryElement/20 text-contrastText/80 font-semibold text-xs rounded-xl transition-all"
         >
-          ⬅️ Back to Roster
+          ️ Back to Roster
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Profile/Metrics Card */}
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6">
-            <div className="flex items-center gap-4 border-b border-slate-800 pb-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold flex items-center justify-center text-lg">
+          <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-6 flex flex-col gap-6">
+            <div className="flex items-center gap-4 border-b border-secondaryElement/20 pb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-canvasBg font-bold flex items-center justify-center text-lg">
                 {employee.company_email.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-slate-100 truncate">{employee.company_email.split("@")[0]}</h3>
+                <h3 className="text-sm font-bold text-contrastText truncate">{employee.company_email.split("@")[0]}</h3>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold mt-1 border ${
                   employee.is_active 
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                    ? "bg-successBadge/15 text-contrastText border-successBadge/30" 
+                    : "bg-primaryAccent/15 text-primaryAccent border-primaryAccent/30"
                 }`}>
                   {employee.is_active ? "Active account" : "Deactivated"}
                 </span>
@@ -238,22 +238,22 @@ export default function EmployeeDetailDashboard() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Weekly Time Accumulation</h4>
-              <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800/80 rounded-xl">
-                <div className="text-xs text-slate-400">Hours Worked</div>
-                <div className="text-xl font-extrabold text-indigo-400">{stats?.weekly_hours || 0} hrs</div>
+              <h4 className="text-xs font-semibold text-contrastText/40 uppercase tracking-wider">Weekly Time Accumulation</h4>
+              <div className="flex items-center justify-between p-4 bg-canvasBg/35 border border-secondaryElement/20/80 rounded-xl">
+                <div className="text-xs text-contrastText/60">Hours Worked</div>
+                <div className="text-xl font-extrabold text-primaryAccent">{stats?.weekly_hours || 0} hrs</div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Monthly Time Accumulation</h4>
-              <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800/80 rounded-xl">
-                <div className="text-xs text-slate-400">Hours Worked</div>
+              <h4 className="text-xs font-semibold text-contrastText/40 uppercase tracking-wider">Monthly Time Accumulation</h4>
+              <div className="flex items-center justify-between p-4 bg-canvasBg/35 border border-secondaryElement/20/80 rounded-xl">
+                <div className="text-xs text-contrastText/60">Hours Worked</div>
                 <div className="text-xl font-extrabold text-purple-400">{stats?.monthly_hours || 0} hrs</div>
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-500 space-y-1">
+            <div className="text-[11px] text-contrastText/40 space-y-1">
               <div><strong>Registration:</strong> {new Date(employee.created_at).toLocaleDateString()}</div>
               <div><strong>Role Level:</strong> {employee.role.toUpperCase()}</div>
             </div>
@@ -261,17 +261,17 @@ export default function EmployeeDetailDashboard() {
         </div>
 
         {/* Right Tabbed Content Box */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
+        <div className="lg:col-span-2 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
           {/* Tab Selector Headers */}
-          <div className="flex border-b border-slate-800 bg-slate-950/20">
+          <div className="flex border-b border-secondaryElement/20 bg-canvasBg/15">
             {(["timeline", "clock", "tasks", "drive"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-3 px-4 text-xs font-bold transition-all border-b-2 capitalize tracking-wide ${
                   activeTab === tab
-                    ? "border-indigo-500 text-indigo-400 bg-indigo-500/5"
-                    : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/20"
+                    ? "border-primaryAccent text-primaryAccent bg-primaryAccent/5"
+                    : "border-transparent text-contrastText/60 hover:text-contrastText/90 hover:bg-canvasBg/30/20"
                 }`}
               >
                 {tab === "timeline" ? "Activity Timeline" : tab === "clock" ? "Clock Log" : tab === "tasks" ? "Sheets Ledger" : "Drive Catalog"}
@@ -285,25 +285,25 @@ export default function EmployeeDetailDashboard() {
             {activeTab === "timeline" && (
               <div className="space-y-6">
                 {timelineEvents.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 space-y-2">
-                    <div className="text-3xl">🏜️</div>
+                  <div className="text-center py-12 text-contrastText/40 space-y-2">
+                    <div className="text-3xl">️</div>
                     <p className="text-sm">No activity recorded for this employee.</p>
                   </div>
                 ) : (
-                  <div className="relative border-l-2 border-slate-800 ml-4 pl-6 space-y-6">
+                  <div className="relative border-l-2 border-secondaryElement/20 ml-4 pl-6 space-y-6">
                     {timelineEvents.map((evt, idx) => (
                       <div key={idx} className="relative">
-                        <span className="absolute -left-[35px] top-0 flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 border border-slate-800 text-xs shadow-sm">
+                        <span className="absolute -left-[35px] top-0 flex items-center justify-center w-6 h-6 rounded-full bg-cardBacking shadow-ambient border border-secondaryElement/20 text-xs shadow-sm">
                           {evt.icon}
                         </span>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-slate-100">{evt.title}</h4>
-                            <span className="text-[9px] text-slate-500">
+                            <h4 className="text-xs font-bold text-contrastText">{evt.title}</h4>
+                            <span className="text-[9px] text-contrastText/40">
                               {evt.timestamp.toLocaleString()}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1 leading-relaxed">{evt.detail}</p>
+                          <p className="text-xs text-contrastText/60 mt-1 leading-relaxed">{evt.detail}</p>
                         </div>
                       </div>
                     ))}
@@ -316,24 +316,24 @@ export default function EmployeeDetailDashboard() {
             {activeTab === "clock" && (
               <div className="overflow-x-auto">
                 {clocks.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 space-y-2">
-                    <div className="text-3xl">🕒</div>
+                  <div className="text-center py-12 text-contrastText/40 space-y-2">
+                    <div className="text-3xl"></div>
                     <p className="text-sm">No clock logs found.</p>
                   </div>
                 ) : (
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase">
+                      <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase">
                         <th className="py-2.5 px-3">Date</th>
                         <th className="py-2.5 px-3">Clock In</th>
                         <th className="py-2.5 px-3">Clock Out</th>
                         <th className="py-2.5 px-3 text-right">Duration</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                       {clocks.map((c) => (
-                        <tr key={c.id} className="hover:bg-slate-800/30 transition-colors odd:bg-slate-950/10">
-                          <td className="py-3 px-3 text-xs text-slate-400">
+                        <tr key={c.id} className="hover:bg-canvasBg/30/30 transition-colors odd:bg-canvasBg/10">
+                          <td className="py-3 px-3 text-xs text-contrastText/60">
                             {new Date(c.clock_in).toLocaleDateString()}
                           </td>
                           <td className="py-3 px-3 font-semibold">
@@ -342,7 +342,7 @@ export default function EmployeeDetailDashboard() {
                           <td className="py-3 px-3">
                             {c.clock_out ? new Date(c.clock_out).toLocaleTimeString() : "-"}
                           </td>
-                          <td className="py-3 px-3 text-right text-indigo-400 font-semibold">
+                          <td className="py-3 px-3 text-right text-primaryAccent font-semibold">
                             {c.clock_out ? calculateDuration(c.clock_in, c.clock_out) : "Active"}
                           </td>
                         </tr>
@@ -357,28 +357,28 @@ export default function EmployeeDetailDashboard() {
             {activeTab === "tasks" && (
               <div className="overflow-x-auto">
                 {tasks.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 space-y-2">
-                    <div className="text-3xl">📝</div>
+                  <div className="text-center py-12 text-contrastText/40 space-y-2">
+                    <div className="text-3xl"></div>
                     <p className="text-sm">No tasks logged in Sheets.</p>
                   </div>
                 ) : (
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase">
+                      <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase">
                         <th className="py-2.5 px-3">Date</th>
                         <th className="py-2.5 px-3">Task Details</th>
                         <th className="py-2.5 px-3 text-right">HMAC Security</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                       {tasks.map((t) => (
-                        <tr key={t.id} className="hover:bg-slate-800/30 transition-colors odd:bg-slate-950/10">
-                          <td className="py-3 px-3 text-xs text-slate-400">
+                        <tr key={t.id} className="hover:bg-canvasBg/30/30 transition-colors odd:bg-canvasBg/10">
+                          <td className="py-3 px-3 text-xs text-contrastText/60">
                             {new Date(t.timestamp).toLocaleDateString()}
                           </td>
-                          <td className="py-3 px-3 font-semibold text-slate-200">{t.description}</td>
+                          <td className="py-3 px-3 font-semibold text-contrastText/90">{t.description}</td>
                           <td className="py-3 px-3 text-right">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-successBadge/15 text-contrastText border border-successBadge/30">
                               HMAC Verified
                             </span>
                           </td>
@@ -394,28 +394,28 @@ export default function EmployeeDetailDashboard() {
             {activeTab === "drive" && (
               <div className="overflow-x-auto">
                 {files.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 space-y-2">
-                    <div className="text-3xl">📁</div>
+                  <div className="text-center py-12 text-contrastText/40 space-y-2">
+                    <div className="text-3xl"></div>
                     <p className="text-sm">No documents uploaded to Google Drive.</p>
                   </div>
                 ) : (
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase">
+                      <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase">
                         <th className="py-2.5 px-3">Filename</th>
                         <th className="py-2.5 px-3">Uploaded At</th>
                         <th className="py-2.5 px-3 text-right">Drive Folder Path</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                       {files.map((f) => (
-                        <tr key={f.id} className="hover:bg-slate-800/30 transition-colors odd:bg-slate-950/10">
-                          <td className="py-3 px-3 font-semibold text-slate-200">{f.file_name}</td>
-                          <td className="py-3 px-3 text-xs text-slate-400">
+                        <tr key={f.id} className="hover:bg-canvasBg/30/30 transition-colors odd:bg-canvasBg/10">
+                          <td className="py-3 px-3 font-semibold text-contrastText/90">{f.file_name}</td>
+                          <td className="py-3 px-3 text-xs text-contrastText/60">
                             {new Date(f.timestamp).toLocaleString()}
                           </td>
                           <td className="py-3 px-3 text-right">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-primaryAccent/10 text-primaryAccent border border-primaryAccent/20">
                               {f.drive_folder_path}
                             </span>
                           </td>

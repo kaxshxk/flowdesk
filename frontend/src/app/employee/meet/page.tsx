@@ -26,7 +26,7 @@ export default function GoogleMeet() {
   const [copied, setCopied] = useState(false);
 
   const availableSpaces = [
-    { id: "", label: "🔒 Do Not Broadcast (Private)" },
+    { id: "", label: " Do Not Broadcast (Private)" },
     { id: "spaces/general_sync", label: "#general-sync" },
     { id: "spaces/hr_room", label: "#hr-announcements" },
     { id: "spaces/engineering_sync", label: "#engineering-sync" },
@@ -89,35 +89,35 @@ export default function GoogleMeet() {
   return (
     <TeamsShell title="Google Meet Provisioner">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-100 font-sans">Video Conferencing</h1>
-        <p className="text-sm text-slate-400 mt-1">Spin up video meeting links dynamically via Google Calendar and broadcast them to space rooms.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-contrastText font-sans">Video Conferencing</h1>
+        <p className="text-sm text-contrastText/60 mt-1">Spin up video meeting links dynamically via Google Calendar and broadcast them to space rooms.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-          <span>⚠️</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-primaryAccent/15 rounded-2xl text-sm text-primaryAccent">
+          <span></span>
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-400">
-          <span>✅</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-successBadge rounded-2xl text-sm text-contrastText">
+          <span></span>
           <span>{success}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Creator panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-fit flex flex-col gap-4">
-          <h3 className="text-md font-bold text-slate-100">📹 Spin Up Meeting Room</h3>
+        <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-6 h-fit flex flex-col gap-4">
+          <h3 className="text-md font-bold text-contrastText"> Spin Up Meeting Room</h3>
           <form onSubmit={handleCreate} className="space-y-4">
             
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="meetTopic">Meeting Topic / Title</label>
+              <label className="text-xs font-semibold text-contrastText/60" htmlFor="meetTopic">Meeting Topic / Title</label>
               <input
                 id="meetTopic"
                 type="text"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none"
+                className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-4 py-3 text-sm text-contrastText outline-none"
                 placeholder="e.g. Emergency Standup, Sync meeting"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -126,10 +126,10 @@ export default function GoogleMeet() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="meetSpace">Broadcast Chat Space</label>
+              <label className="text-xs font-semibold text-contrastText/60" htmlFor="meetSpace">Broadcast Chat Space</label>
               <select
                 id="meetSpace"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none"
+                className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-3 py-2.5 text-sm text-contrastText outline-none"
                 value={spaceId}
                 onChange={(e) => setSpaceId(e.target.value)}
                 disabled={btnLoading}
@@ -140,18 +140,18 @@ export default function GoogleMeet() {
                   </option>
                 ))}
               </select>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-contrastText/40">
                 Will auto-post the meeting invite link into the chosen space.
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/25 transition-all text-white font-semibold text-sm rounded-xl"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-primaryAccent hover:bg-primaryAccent/95 hover:shadow-lg hover:shadow-primaryAccent/20 transition-all text-canvasBg font-semibold text-sm rounded-xl"
               disabled={btnLoading}
             >
               {btnLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-canvasBg"></div>
               ) : (
                 "Create & Broadcast Instant Meet"
               )}
@@ -159,25 +159,25 @@ export default function GoogleMeet() {
           </form>
 
           {newMeetUrl && (
-            <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl flex flex-col gap-3">
-              <div className="text-xs font-bold text-emerald-400 text-center">Room Created Successfully!</div>
+            <div className="mt-4 p-4 bg-successBadge/15 border border-successBadge/25 rounded-2xl flex flex-col gap-3">
+              <div className="text-xs font-bold text-contrastText text-center">Room Created Successfully!</div>
               
               <div className="flex gap-2">
                 <a
                   href={newMeetUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 text-center py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all"
+                  className="flex-1 text-center py-2 bg-successBadge hover:bg-successBadge text-canvasBg font-semibold text-xs rounded-xl transition-all"
                 >
-                  🚀 Join Meeting Now
+                   Join Meeting Now
                 </a>
                 
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="px-4 py-2 bg-slate-950 border border-slate-800 text-slate-300 hover:text-slate-100 text-xs font-semibold rounded-xl transition-all"
+                  className="px-4 py-2 bg-canvasBg/35 border border-secondaryElement/20 text-contrastText/80 hover:text-contrastText text-xs font-semibold rounded-xl transition-all"
                 >
-                  {copied ? "✓ Copied!" : "📋 Copy Link"}
+                  {copied ? " Copied!" : " Copy Link"}
                 </button>
               </div>
             </div>
@@ -185,39 +185,39 @@ export default function GoogleMeet() {
         </div>
 
         {/* History panel */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-md">
-          <h3 className="text-md font-bold text-slate-100 mb-4">📂 Active & Past Meetings</h3>
+        <div className="lg:col-span-2 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-6 shadow-md">
+          <h3 className="text-md font-bold text-contrastText mb-4"> Active & Past Meetings</h3>
           {loading ? (
             <div className="space-y-4">
-              <div className="h-6 bg-slate-800 rounded w-1/4 animate-pulse"></div>
-              <div className="h-24 bg-slate-800 rounded animate-pulse"></div>
+              <div className="h-6 bg-canvasBg/25 rounded w-1/4 animate-pulse"></div>
+              <div className="h-24 bg-canvasBg/25 rounded animate-pulse"></div>
             </div>
           ) : history.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 space-y-2">
-              <span className="text-3xl block">📹</span>
+            <div className="text-center py-12 text-contrastText/40 space-y-2">
+              <span className="text-3xl block"></span>
               <p className="text-sm">No meeting rooms generated yet.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase bg-slate-950/20">
+                  <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase bg-canvasBg/15">
                     <th className="py-3 px-4">Topic</th>
                     <th className="py-3 px-4">Created At</th>
                     <th className="py-3 px-4">Broadcast Space</th>
                     <th className="py-3 px-4 text-right">Meeting Link</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
+                <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                   {history.map((meet) => (
-                    <tr key={meet.id} className="hover:bg-slate-800/40 transition-colors odd:bg-slate-950/10">
-                      <td className="py-4 px-4 font-semibold text-slate-100">{meet.topic}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400">{new Date(meet.timestamp).toLocaleString()}</td>
+                    <tr key={meet.id} className="hover:bg-canvasBg/20 transition-colors odd:bg-canvasBg/10">
+                      <td className="py-4 px-4 font-semibold text-contrastText">{meet.topic}</td>
+                      <td className="py-4 px-4 text-xs text-contrastText/60">{new Date(meet.timestamp).toLocaleString()}</td>
                       <td className="py-4 px-4">
                         {meet.target_space_id ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">{meet.target_space_id.split("/")[1] || meet.target_space_id}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primaryAccent/10 text-primaryAccent border border-primaryAccent/20">{meet.target_space_id.split("/")[1] || meet.target_space_id}</span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">Private</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-canvasBg/25 text-contrastText/60">Private</span>
                         )}
                       </td>
                       <td className="py-4 px-4 text-right">
@@ -225,7 +225,7 @@ export default function GoogleMeet() {
                           href={meet.meet_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center px-3 py-1.5 bg-slate-950 border border-slate-800 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-xs font-semibold rounded-xl text-slate-300 transition-colors"
+                          className="inline-flex items-center px-3 py-1.5 bg-canvasBg/35 border border-secondaryElement/20 hover:bg-canvasBg/30 border-secondaryElement/20 hover:border-secondaryElement/45 text-xs font-semibold rounded-xl text-contrastText/80 transition-colors"
                         >
                           Join Meet ↗
                         </a>

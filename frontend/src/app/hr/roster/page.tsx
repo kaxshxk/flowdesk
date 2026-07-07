@@ -195,38 +195,38 @@ export default function WhitelistRoster() {
   return (
     <TeamsShell title="HR Roster & Whitelist Control">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-100">Roster & Whitelist Manager</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-extrabold tracking-tight text-contrastText">Roster & Whitelist Manager</h1>
+        <p className="text-sm text-contrastText/70 mt-1">
           Add allowed company emails to the whitelist, toggle user account lifecycles, and edit authorization roles.
         </p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-          <span>⚠️</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-primaryAccent/15 rounded-2xl text-sm text-primaryAccent">
+          <span></span>
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-400">
-          <span>✅</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-successBadge rounded-2xl text-sm text-contrastText">
+          <span></span>
           <span>{success}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Whitelist Addition Form */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-fit flex flex-col gap-4">
-          <h3 className="text-md font-bold text-slate-100">🎟️ Whitelist New Employee</h3>
+        <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-2xl p-6 h-fit flex flex-col gap-4">
+          <h3 className="text-md font-bold text-contrastText">Whitelist New Employee</h3>
           <form onSubmit={handleAddWhitelist} className="space-y-4">
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="emailInput">
+              <label className="text-xs font-semibold text-contrastText/70" htmlFor="emailInput">
                 Company Email Address
               </label>
               <input
                 id="emailInput"
                 type="email"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 transition-all outline-none"
+                className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/30 transition-all outline-none"
                 placeholder="e.g. employee@company.com"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
@@ -236,12 +236,12 @@ export default function WhitelistRoster() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="roleSelect">
+              <label className="text-xs font-semibold text-contrastText/70" htmlFor="roleSelect">
                 Assigned Role
               </label>
               <select
                 id="roleSelect"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none"
+                className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-3 py-2.5 text-sm text-contrastText outline-none"
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value as "employee" | "hr")}
                 disabled={actionLoading}
@@ -253,11 +253,11 @@ export default function WhitelistRoster() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/25 transition-all text-white font-semibold text-sm rounded-xl"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-primaryAccent hover:bg-primaryAccent/95 hover:shadow-lg hover:shadow-ambient transition-all text-canvasBg font-semibold text-sm rounded-xl"
               disabled={actionLoading}
             >
               {actionLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-canvasBg"></div>
               ) : (
                 "Add to Whitelist"
               )}
@@ -266,63 +266,63 @@ export default function WhitelistRoster() {
         </div>
 
         {/* Combined Whitelist & Employee Data Table */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-md font-bold text-slate-100 mb-4">📋 Whitelisted & Registered Accounts</h3>
+        <div className="lg:col-span-2 bg-cardBacking shadow-ambient border border-secondaryElement/20 shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-2xl p-6">
+          <h3 className="text-md font-bold text-contrastText mb-4">Whitelisted & Registered Accounts</h3>
           {loading ? (
             <div className="space-y-4">
-              <div className="h-6 bg-slate-800 rounded w-1/4 animate-pulse"></div>
-              <div className="h-24 bg-slate-800 rounded animate-pulse"></div>
+              <div className="h-6 bg-canvasBg/50 rounded w-1/4 animate-pulse"></div>
+              <div className="h-24 bg-canvasBg/50 rounded animate-pulse"></div>
             </div>
           ) : getRosterRows().length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
-              <span className="text-3xl block mb-2">👥</span>
+            <div className="text-center py-12 text-contrastText/40">
+              <span className="text-3xl block mb-2"></span>
               <p className="text-sm">Roster is empty. Add users to get started.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase">
+                  <tr className="border-b border-secondaryElement/20 text-contrastText/50 text-xs font-semibold uppercase">
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Role</th>
                     <th className="py-3 px-4">Account Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
+                <tbody className="divide-y divide-misty-sky/10 text-contrastText/85">
                   {getRosterRows().map((row) => (
-                    <tr key={row.email} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-slate-100">{row.email}</td>
+                    <tr key={row.email} className="hover:bg-canvasBg/15 transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-contrastText">{row.email}</td>
                       <td className="py-3.5 px-4">
                         {row.userId ? (
                           <select
                             value={row.role}
                             onChange={(e) => handleRoleChange(row.userId!, e.target.value as "employee" | "hr")}
                             disabled={actionLoading}
-                            className="bg-slate-950 border border-slate-800 text-xs rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500"
+                            className="bg-canvasBg/20 border border-secondaryElement/25 text-xs rounded-lg px-2 py-1 text-contrastText outline-none focus:border-primaryAccent"
                           >
                             <option value="employee">Employee</option>
                             <option value="hr">HR</option>
                           </select>
                         ) : (
-                          <span className="text-xs px-2 py-1 rounded bg-slate-950 border border-slate-800 text-slate-500 capitalize">
+                          <span className="text-xs px-2 py-1 rounded bg-canvasBg/20 border border-secondaryElement/20 text-contrastText/50 capitalize">
                             {row.role}
                           </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4">
                         {row.status === "active" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-successBadge/15 text-contrastText border border-successBadge/35">
                             Active
                           </span>
                         )}
                         {row.status === "inactive" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primaryAccent/10 text-primaryAccent border border-primaryAccent/30">
                             Deactivated
                           </span>
                         )}
                         {row.status === "pending" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-softHighlight/35 text-primaryAccent border border-softHighlight/45">
                             Pending Invite
                           </span>
                         )}
@@ -333,17 +333,17 @@ export default function WhitelistRoster() {
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => router.push(`/hr/employees/${row.userId}`)}
-                                className="px-3 py-1.5 font-bold text-xs bg-indigo-950/40 hover:bg-indigo-900/40 border border-indigo-900/35 text-indigo-400 rounded-xl transition-all shadow-sm"
+                                className="px-3 py-1.5 font-bold text-xs bg-softHighlight/20 hover:bg-softHighlight/35 border border-softHighlight/30 text-primaryAccent rounded-xl transition-all shadow-sm transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95"
                               >
                                 View Dossier
                               </button>
                               <button
                                 onClick={() => handleStatusToggle(row.userId!, row.status === "active")}
                                 disabled={actionLoading}
-                                className={`px-3 py-1.5 font-bold text-xs rounded-xl transition-all shadow-sm ${
+                                className={`px-3 py-1.5 font-bold text-xs rounded-xl transition-all shadow-sm transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95 ${
                                   row.status === "active"
-                                    ? "bg-red-950/40 hover:bg-red-900/40 border border-red-900/35 text-red-400"
-                                    : "bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-900/35 text-emerald-400"
+                                    ? "bg-primaryAccent/10 hover:bg-primaryAccent/15 border border-primaryAccent/30 text-primaryAccent"
+                                    : "bg-successBadge/20 hover:bg-successBadge/30 border border-successBadge/35 text-contrastText"
                                 }`}
                               >
                                 {row.status === "active" ? "Deactivate" : "Reactivate"}
@@ -354,10 +354,13 @@ export default function WhitelistRoster() {
                               <button
                                 onClick={() => handleDeleteWhitelist(row.whitelistId!, row.email)}
                                 disabled={actionLoading}
-                                className="p-2 text-slate-500 hover:text-red-500 hover:bg-slate-800 rounded-xl transition-colors"
+                                className="p-2 text-contrastText/40 hover:text-primaryAccent hover:bg-primaryAccent/10 rounded-xl transition-colors"
                                 title="Revoke Whitelist invitation"
                               >
-                                🗑️
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
                               </button>
                             )
                           )}

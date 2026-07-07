@@ -32,8 +32,8 @@ export default function RouteGuard({ children }: RouteGuardProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-100">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500" />
+      <div className="flex items-center justify-center min-h-screen bg-canvasBg/35 text-contrastText">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primaryAccent" />
       </div>
     );
   }
@@ -48,19 +48,19 @@ export default function RouteGuard({ children }: RouteGuardProps) {
   // 403 view for non-HR users accessing HR routes
   if (user && isHrOnly && user.role !== "hr") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-100 p-6">
-        <div className="max-w-md w-full bg-slate-900 border border-red-500/30 rounded-2xl p-8 text-center shadow-2xl shadow-red-500/5">
-          <div className="text-red-500 text-6xl mb-4">🛡️</div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100 mb-2">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-canvasBg/35 text-contrastText p-6">
+        <div className="max-w-md w-full bg-cardBacking shadow-ambient border border-secondaryElement/20 border-primaryAccent/30 rounded-2xl p-8 text-center shadow-2xl shadow-red-500/5">
+          <div className="text-primaryAccent text-6xl mb-4"></div>
+          <h1 className="text-2xl font-bold tracking-tight text-contrastText mb-2">
             403 Unauthorized
           </h1>
-          <p className="text-slate-400 text-sm mb-6">
+          <p className="text-contrastText/60 text-sm mb-6">
             Access to this workspace segment is strictly restricted to HR
             Administrators.
           </p>
           <button
             onClick={() => router.push("/employee/dashboard")}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 transition-colors font-semibold text-sm rounded-xl text-white shadow-lg shadow-indigo-500/20"
+            className="px-5 py-2.5 bg-primaryAccent hover:bg-primaryAccent/95 transition-colors font-semibold text-sm rounded-xl text-canvasBg shadow-lg shadow-ambient"
           >
             Return to Employee Portal
           </button>

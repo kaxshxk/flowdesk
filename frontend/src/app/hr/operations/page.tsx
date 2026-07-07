@@ -146,31 +146,31 @@ export default function OperationsCenter() {
   return (
     <TeamsShell title="Operations Center">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-100">Operations Control</h1>
-        <p className="text-sm text-slate-400 mt-1">Review leave/WFH requests and monitor real-time cryptographic security logs.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-contrastText">Operations Control</h1>
+        <p className="text-sm text-contrastText/60 mt-1">Review leave/WFH requests and monitor real-time cryptographic security logs.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-          <span>⚠️</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-primaryAccent/15 rounded-2xl text-sm text-primaryAccent">
+          <span></span>
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-400">
-          <span>✅</span>
+        <div className="flex items-center gap-2 p-4 mb-6 bg-successBadge rounded-2xl text-sm text-contrastText">
+          <span></span>
           <span>{success}</span>
         </div>
       )}
 
       {/* Tab Selector Switches */}
-      <div className="flex border-b border-slate-800 bg-slate-900/40 rounded-xl p-1 mb-8 gap-1 w-fit">
+      <div className="flex border-b border-secondaryElement/20 bg-canvasBg/20 rounded-xl p-1 mb-8 gap-1 w-fit">
         <button
           onClick={() => setActiveTab("requests")}
           className={`px-5 py-2 text-xs font-bold transition-all rounded-lg capitalize tracking-wide ${
             activeTab === "requests"
-              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15"
-              : "text-slate-400 hover:text-slate-200"
+              ? "bg-primaryAccent text-canvasBg shadow-md shadow-primaryAccent/15"
+              : "text-contrastText/60 hover:text-contrastText/90"
           }`}
         >
           Leave & WFH Requests ({pendingRequests.length})
@@ -179,8 +179,8 @@ export default function OperationsCenter() {
           onClick={() => setActiveTab("alerts")}
           className={`px-5 py-2 text-xs font-bold transition-all rounded-lg capitalize tracking-wide ${
             activeTab === "alerts"
-              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15"
-              : "text-slate-400 hover:text-slate-200"
+              ? "bg-primaryAccent text-canvasBg shadow-md shadow-primaryAccent/15"
+              : "text-contrastText/60 hover:text-contrastText/90"
           }`}
         >
           Security & Activity Alerts ({alerts.filter((a) => !a.resolved).length})
@@ -189,8 +189,8 @@ export default function OperationsCenter() {
 
       {loading ? (
         <div className="space-y-6">
-          <div className="h-44 bg-slate-900 border border-slate-800 rounded-2xl animate-pulse"></div>
-          <div className="h-44 bg-slate-900 border border-slate-800 rounded-2xl animate-pulse"></div>
+          <div className="h-44 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl animate-pulse"></div>
+          <div className="h-44 bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl animate-pulse"></div>
         </div>
       ) : (
         <>
@@ -198,36 +198,36 @@ export default function OperationsCenter() {
           {activeTab === "requests" && (
             <div>
               {pendingRequests.length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500">
-                  <div className="text-4xl mb-3">🏖️</div>
-                  <h3 className="font-bold text-slate-300">Clean Queue</h3>
-                  <p className="text-xs text-slate-400 mt-1">No pending leave or WFH requests to review.</p>
+                <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-12 text-center text-contrastText/40">
+                  <div className="text-4xl mb-3">️</div>
+                  <h3 className="font-bold text-contrastText/80">Clean Queue</h3>
+                  <p className="text-xs text-contrastText/60 mt-1">No pending leave or WFH requests to review.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {pendingRequests.map((req) => (
-                    <div key={req.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+                    <div key={req.id} className="bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl p-6 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                        <div className="flex items-center justify-between border-b border-secondaryElement/20 pb-3 mb-4">
                           <div>
-                            <h4 className="font-bold text-slate-200 text-sm truncate">{getEmailById(req.user_id)}</h4>
-                            <span className="text-[10px] text-slate-500">Submitted User ID: #{req.user_id}</span>
+                            <h4 className="font-bold text-contrastText/90 text-sm truncate">{getEmailById(req.user_id)}</h4>
+                            <span className="text-[10px] text-contrastText/40">Submitted User ID: #{req.user_id}</span>
                           </div>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                             req.request_type === "leave" 
-                              ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" 
-                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              ? "bg-cardBacking/40 text-contrastText border border-secondaryElement/30" 
+                              : "bg-successBadge/15 text-contrastText border border-successBadge/30"
                           }`}>
-                            {req.request_type === "leave" ? "🏝️ Leave" : "🏠 WFH"}
+                            {req.request_type === "leave" ? " Leave" : " WFH"}
                           </span>
                         </div>
 
                         <div className="space-y-2 mb-4">
-                          <div className="text-xs text-slate-400">
+                          <div className="text-xs text-contrastText/60">
                             <strong>Date Range:</strong> {req.start_date} to {req.end_date}
                           </div>
                           {req.employee_note && (
-                            <div className="p-3 bg-slate-950 border border-slate-800/80 rounded-xl text-xs text-slate-400 leading-relaxed italic">
+                            <div className="p-3 bg-canvasBg/35 border border-secondaryElement/20/80 rounded-xl text-xs text-contrastText/60 leading-relaxed italic">
                               "{req.employee_note}"
                             </div>
                           )}
@@ -236,7 +236,7 @@ export default function OperationsCenter() {
 
                       <button
                         onClick={() => openReviewModal(req)}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-indigo-600/10"
+                        className="w-full py-2 bg-primaryAccent hover:bg-primaryAccent/95 text-canvasBg font-semibold text-xs rounded-xl transition-all shadow-md shadow-primaryAccent/10"
                       >
                         Review & Respond
                       </button>
@@ -249,17 +249,17 @@ export default function OperationsCenter() {
 
           {/* TAB 2: SECURITY ALERTS FEED */}
           {activeTab === "alerts" && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-2xl overflow-hidden">
               {alerts.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <div className="text-3xl mb-2">🛡️</div>
+                <div className="text-center py-12 text-contrastText/40">
+                  <div className="text-3xl mb-2"></div>
                   <p className="text-sm font-semibold">Security logs are completely clean.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase bg-slate-950/20">
+                      <tr className="border-b border-secondaryElement/20 text-contrastText/60 text-xs font-semibold uppercase bg-canvasBg/15">
                         <th className="py-3 px-6">Severity</th>
                         <th className="py-3 px-6">User ID</th>
                         <th className="py-3 px-6">Alert Details</th>
@@ -267,38 +267,38 @@ export default function OperationsCenter() {
                         <th className="py-3 px-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-secondaryElement/20 text-contrastText/80">
                       {alerts.map((alert) => {
                         const isCritical = alert.severity === "critical";
                         return (
                           <tr
                             key={alert.id}
-                            className={`transition-colors hover:bg-slate-800/40 ${
+                            className={`transition-colors hover:bg-canvasBg/20 ${
                               isCritical && !alert.resolved
-                                ? "bg-red-500/5 text-red-200"
+                                ? "bg-primaryAccent/10 text-primaryAccent"
                                 : alert.resolved
                                 ? "opacity-50"
-                                : "odd:bg-slate-950/10"
+                                : "odd:bg-canvasBg/10"
                             }`}
                           >
                             <td className="py-4 px-6">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                                 alert.severity === "critical"
-                                  ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                  ? "bg-primaryAccent text-canvasBg"
                                   : alert.severity === "warning"
-                                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                  : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                  ? "bg-softHighlight text-contrastText"
+                                  : "bg-cardBacking/40 text-contrastText border border-secondaryElement/30"
                               }`}>
-                                {alert.severity === "critical" ? "🛡️ Critical" : alert.severity === "warning" ? "⚠️ Warning" : "✓ Info"}
+                                {alert.severity === "critical" ? " Critical" : alert.severity === "warning" ? " Warning" : " Info"}
                               </span>
                             </td>
                             <td className="py-4 px-6 font-semibold">User #{alert.user_id}</td>
                             <td className="py-4 px-6 max-w-md">
-                              <div className={isCritical ? "font-bold text-red-400" : ""}>
+                              <div className={isCritical ? "font-bold text-primaryAccent" : ""}>
                                 {alert.description}
                               </div>
                             </td>
-                            <td className="py-4 px-6 text-xs text-slate-400">
+                            <td className="py-4 px-6 text-xs text-contrastText/60">
                               {new Date(alert.timestamp).toLocaleString()}
                             </td>
                             <td className="py-4 px-6 text-right">
@@ -306,12 +306,12 @@ export default function OperationsCenter() {
                                 <button
                                   onClick={() => handleResolveAlert(alert.id)}
                                   disabled={actionLoading}
-                                  className="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-slate-100 text-xs font-semibold rounded-xl transition-all"
+                                  className="px-3 py-1.5 bg-canvasBg/35 border border-secondaryElement/20 hover:bg-canvasBg/30 text-contrastText/80 hover:text-contrastText text-xs font-semibold rounded-xl transition-all"
                                 >
                                   Mark Resolved
                                 </button>
                               ) : (
-                                <span className="text-xs text-slate-500">Resolved</span>
+                                <span className="text-xs text-contrastText/40">Resolved</span>
                               )}
                             </td>
                           </tr>
@@ -329,18 +329,18 @@ export default function OperationsCenter() {
       {/* REVIEW DIALOG MODAL */}
       {reviewingReq && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
-          <form onSubmit={handleReviewSubmit} className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h4 className="text-md font-bold text-slate-100">Review request (User #{reviewingReq.user_id})</h4>
-              <button type="button" className="text-xl text-slate-500 hover:text-slate-300" onClick={() => setReviewingReq(null)}>×</button>
+          <form onSubmit={handleReviewSubmit} className="w-full max-w-md bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-3xl p-8 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-secondaryElement/20 pb-3">
+              <h4 className="text-md font-bold text-contrastText">Review request (User #{reviewingReq.user_id})</h4>
+              <button type="button" className="text-xl text-contrastText/40 hover:text-contrastText/80" onClick={() => setReviewingReq(null)}>×</button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-400" htmlFor="modalStatus">Final Status</label>
+                <label className="text-xs font-semibold text-contrastText/60" htmlFor="modalStatus">Final Status</label>
                 <select
                   id="modalStatus"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none"
+                  className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-3 py-2.5 text-sm text-contrastText outline-none"
                   value={statusInput}
                   onChange={(e) => setStatusInput(e.target.value as "approved" | "declined")}
                   disabled={actionLoading}
@@ -351,26 +351,26 @@ export default function OperationsCenter() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-400" htmlFor="modalType">Arrangement Type</label>
+                <label className="text-xs font-semibold text-contrastText/60" htmlFor="modalType">Arrangement Type</label>
                 <select
                   id="modalType"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none"
+                  className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-3 py-2.5 text-sm text-contrastText outline-none"
                   value={typeInput}
                   onChange={(e) => setTypeInput(e.target.value as "leave" | "wfh")}
                   disabled={actionLoading}
                 >
-                  <option value="leave">🏝️ Leave / Vacation</option>
-                  <option value="wfh">🏠 Work From Home</option>
+                  <option value="leave"> Leave / Vacation</option>
+                  <option value="wfh"> Work From Home</option>
                 </select>
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="modalEndDate">Override End Date</label>
+              <label className="text-xs font-semibold text-contrastText/60" htmlFor="modalEndDate">Override End Date</label>
               <input
                 id="modalEndDate"
                 type="date"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-2.5 text-sm text-slate-100 outline-none"
+                className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-4 py-2.5 text-sm text-contrastText outline-none"
                 value={endDateInput}
                 onChange={(e) => setEndDateInput(e.target.value)}
                 disabled={actionLoading}
@@ -380,12 +380,12 @@ export default function OperationsCenter() {
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-400" htmlFor="modalHrNote">HR Reviewer Notes</label>
-                <span className="text-[10px] text-slate-500">{hrNoteInput.length}/300 characters</span>
+                <label className="text-xs font-semibold text-contrastText/60" htmlFor="modalHrNote">HR Reviewer Notes</label>
+                <span className="text-[10px] text-contrastText/40">{hrNoteInput.length}/300 characters</span>
               </div>
               <textarea
                 id="modalHrNote"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 transition-all outline-none min-h-[90px]"
+                className="w-full bg-canvasBg/35 border border-secondaryElement/20 focus:border-primaryAccent focus:ring-2 focus:ring-primaryAccent/30/20 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/40 transition-all outline-none min-h-[90px]"
                 placeholder="Include approval comments..."
                 maxLength={300}
                 value={hrNoteInput}
@@ -398,18 +398,18 @@ export default function OperationsCenter() {
               <button
                 type="button"
                 onClick={() => setReviewingReq(null)}
-                className="px-4 py-2.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200 text-xs font-semibold rounded-xl transition-all"
+                className="px-4 py-2.5 bg-canvasBg/35 border border-secondaryElement/20 text-contrastText/60 hover:text-contrastText/90 text-xs font-semibold rounded-xl transition-all"
                 disabled={actionLoading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition-all"
+                className="px-5 py-2.5 bg-primaryAccent hover:bg-primaryAccent/95 text-canvasBg font-semibold text-xs rounded-xl transition-all"
                 disabled={actionLoading}
               >
                 {actionLoading ? (
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-canvasBg"></div>
                 ) : (
                   "Save Decisions"
                 )}

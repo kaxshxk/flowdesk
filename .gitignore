@@ -16,17 +16,54 @@ hr_productivity_hub/**/__pycache__/
 hr_productivity_hub/*.pyc
 hr_productivity_hub/**/*.pyc
 hr_productivity_hub/venv/
+
+# ── Environment / Secrets — NEVER COMMIT ──────────────────────────────────────
+.env
+.env.*
+!.env.example          # keep example files safe to commit
 hr_productivity_hub/.env
+hr_productivity_hub/.env.*
+!hr_productivity_hub/.env.example
+frontend/.env.local
+frontend/.env.production
+frontend/.env.*
+!frontend/.env.example
+
+# ── Google Service Account Keys ────────────────────────────────────────────────
+*.pem
+*.key
+*.json.key
+service-account*.json
+*-service-account.json
+*credentials*.json
+*-credentials.json
+gcp-key*.json
+google-*.json
+
+# ── Databases ─────────────────────────────────────────────────────────────────
 hr_productivity_hub/*.db
+hr_productivity_hub/*.sqlite
+hr_productivity_hub/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
 
 # ── Next.js frontend ───────────────────────────────────────────────────────────
 frontend/.next/
 frontend/node_modules/
-frontend/.env.local
-frontend/.env.production
+frontend/out/
+frontend/.turbo/
 
-# ── Root env / secrets ────────────────────────────────────────────────────────
-.env
-*.pem
-*.json.key
-service-account*.json
+# ── Python packaging / testing ────────────────────────────────────────────────
+hr_productivity_hub/.pytest_cache/
+hr_productivity_hub/.mypy_cache/
+hr_productivity_hub/.coverage
+hr_productivity_hub/htmlcov/
+hr_productivity_hub/dist/
+hr_productivity_hub/build/
+hr_productivity_hub/*.egg-info/
+hr_productivity_hub/test_temp.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
