@@ -24,6 +24,14 @@ class User(SQLModel, table=True):
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
+    # Profile information fields
+    full_name: Optional[str] = Field(default=None)
+    job_title: Optional[str] = Field(default=None)
+    department: Optional[str] = Field(default=None)
+    phone_number: Optional[str] = Field(default=None)
+    bio: Optional[str] = Field(default=None)
+    avatar_url: Optional[str] = Field(default=None)
+    
     # Relationship to access whitelist
     access_whitelist_entries: List["AccessWhitelist"] = Relationship(back_populates="created_by")
 
@@ -68,6 +76,8 @@ class AccessWhitelist(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     allowed_email: str = Field(unique=True, index=True)
     assigned_role: UserRole
+    job_title: Optional[str] = Field(default=None)
+    department: Optional[str] = Field(default=None)
     created_by_hr_id: Optional[int] = Field(default=None, foreign_key="user.id", nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     

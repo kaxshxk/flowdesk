@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlmodel import Session, select
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from core.database import get_session
@@ -75,11 +75,11 @@ def mock_login(
 
     email = request_data.email.strip().lower()
 
-    # 1. Enforce specific dev email domains (@yourcompany.com or @dev.local)
-    if not (email.endswith("@yourcompany.com") or email.endswith("@dev.local")):
+    # 1. Enforce specific dev email domains (@company.com, @yourcompany.com or @dev.local)
+    if not (email.endswith("@company.com") or email.endswith("@yourcompany.com") or email.endswith("@dev.local")):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mock login is restricted to dev domains (@yourcompany.com or @dev.local)."
+            detail="Mock login is restricted to dev domains (@company.com, @yourcompany.com or @dev.local)."
         )
 
     # 2. Require the user to exist in the AccessWhitelist
@@ -192,6 +192,105 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     """
     Get current user info.
     """
+    return current_user
+
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: Optional[str] = None
+    job_title: Optional[str] = None
+    department: Optional[str] = None
+    phone_number: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
+@router.put("/me")
+def update_profile(
+    payload: ProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Update current user profile.
+    """
+    # Enforce role restrictions: Employees cannot edit job title and department
+    if current_user.role == UserRole.EMPLOYEE:
+        if payload.job_title is not None or payload.department is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Employees are not permitted to modify their Job Title or Department. Please contact HR."
+            )
+
+    if payload.full_name is not None:
+        current_user.full_name = payload.full_name
+    if payload.job_title is not None:
+        current_user.job_title = payload.job_title
+    if payload.department is not None:
+        current_user.department = payload.department
+    if payload.phone_number is not None:
+        current_user.phone_number = payload.phone_number
+    if payload.bio is not None:
+        current_user.bio = payload.bio
+    if payload.avatar_url is not None:
+        current_user.avatar_url = payload.avatar_url if payload.avatar_url != "" else None
+        
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(..., description="Binary avatar image."),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Upload and update user profile avatar.
+    """
+    import os
+    import shutil
+    
+    # Resolve absolute path for static/uploads/avatars
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    avatar_dir = os.path.join(base_dir, "static", "uploads", "avatars")
+    os.makedirs(avatar_dir, exist_ok=True)
+    
+    # Sanitize extension
+    _, ext = os.path.splitext(file.filename or "")
+    if ext.lower() not in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+        raise HTTPException(status_code=400, detail="Unsupported image format. Please upload PNG, JPG, or WEBP.")
+        
+    filename = f"user_{current_user.id}{ext.lower()}"
+    file_path = os.path.join(avatar_dir, filename)
+    
+    # Write to local disk
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Standard serving path
+    avatar_url = f"http://localhost:8000/static/uploads/avatars/{filename}"
+    current_user.avatar_url = avatar_url
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    
+    return current_user
+
+
+@router.delete("/me/avatar")
+def delete_avatar(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Delete user profile avatar.
+    """
+    current_user.avatar_url = None
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
     return current_user
 
 

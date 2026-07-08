@@ -42,6 +42,8 @@ export default function WhitelistRoster() {
   // Form State
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"employee" | "hr">("employee");
+  const [newJobTitle, setNewJobTitle] = useState("");
+  const [newDepartment, setNewDepartment] = useState("");
 
   const fetchData = async () => {
     try {
@@ -121,9 +123,13 @@ export default function WhitelistRoster() {
       await api.post("/hr/whitelist", {
         allowed_email: email,
         assigned_role: newRole,
+        job_title: newJobTitle.trim() || null,
+        department: newDepartment.trim() || null,
       });
 
       setNewEmail("");
+      setNewJobTitle("");
+      setNewDepartment("");
       setSuccess(`Successfully whitelisted email "${email}"!`);
       await fetchData();
     } catch (err: any) {
@@ -249,6 +255,36 @@ export default function WhitelistRoster() {
                 <option value="employee">Employee</option>
                 <option value="hr">HR Administrator</option>
               </select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-contrastText/70" htmlFor="jobTitleInput">
+                Job Title (Optional)
+              </label>
+              <input
+                id="jobTitleInput"
+                type="text"
+                className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/30 transition-all outline-none"
+                placeholder="e.g. Senior Software Engineer"
+                value={newJobTitle}
+                onChange={(e) => setNewJobTitle(e.target.value)}
+                disabled={actionLoading}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-contrastText/70" htmlFor="departmentInput">
+                Department (Optional)
+              </label>
+              <input
+                id="departmentInput"
+                type="text"
+                className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/30 transition-all outline-none"
+                placeholder="e.g. Product Engineering"
+                value={newDepartment}
+                onChange={(e) => setNewDepartment(e.target.value)}
+                disabled={actionLoading}
+              />
             </div>
 
             <button

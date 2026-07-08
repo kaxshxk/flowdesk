@@ -128,7 +128,7 @@ def resolve_mime_type(file_name: str, content_type: str | None) -> str:
 )
 async def upload_file(
     file: UploadFile = File(..., description="Binary file to upload (max 50 MB)."),
-    current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
+    current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
     _rate_limit = Depends(rate_limit(5, 60)),
 ):
@@ -198,7 +198,7 @@ async def upload_file(
     summary="List files uploaded by the authenticated employee",
 )
 def list_my_files(
-    current_user: User = Depends(require_role([UserRole.EMPLOYEE])),
+    current_user: User = Depends(require_role([UserRole.EMPLOYEE, UserRole.HR])),
     session: Session = Depends(get_session),
 ):
     """

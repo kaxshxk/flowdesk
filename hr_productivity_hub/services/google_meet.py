@@ -29,6 +29,8 @@ class GoogleMeetClient:
     def __init__(self) -> None:
         self.service = None
         self._mock_mode = True
+        self.credentials_path = None
+        self.scopes = ["https://www.googleapis.com/auth/calendar.events"]
 
         credentials_path: Optional[str] = settings.GOOGLE_CALENDAR_CREDENTIALS
 
@@ -53,13 +55,15 @@ class GoogleMeetClient:
             )
             return
 
+        self.credentials_path = credentials_path
+
         try:
             from googleapiclient.discovery import build
             from google.oauth2 import service_account
 
-            scopes = ["https://www.googleapis.com/auth/calendar.events"]
+            # Initialise standard credentials for validation
             creds = service_account.Credentials.from_service_account_file(
-                credentials_path, scopes=scopes
+                self.credentials_path, scopes=self.scopes
             )
             self.service = build("calendar", "v3", credentials=creds, cache_discovery=False)
             self._mock_mode = False
@@ -76,22 +80,51 @@ class GoogleMeetClient:
                 exc,
             )
 
-    def create_instant_meet_room(self, topic: str) -> str:
+    def get_calendar_service(self, delegate_email: Optional[str] = None):
+        """Build a calendar service instance, optionally delegating (impersonating) a user."""
+        if not self.credentials_path:
+            return None
+        
+        try:
+            from googleapiclient.discovery import build
+            from google.oauth2 import service_account
+
+            creds = service_account.Credentials.from_service_account_file(
+                self.credentials_path, scopes=self.scopes
+            )
+            
+            # Prefer specified delegate, fallback to global settings config
+            target_email = delegate_email or settings.GOOGLE_CALENDAR_DELEGATED_EMAIL
+            if target_email:
+                creds = creds.with_subject(target_email)
+                logger.info("Building calendar service impersonating user: %s", target_email)
+                
+            return build("calendar", "v3", credentials=creds, cache_discovery=False)
+        except Exception as exc:
+            logger.warning("Failed to build delegated Calendar service: %s. Using default credentials.", exc)
+            return None
+
+    def create_instant_meet_room(self, topic: str, delegate_email: Optional[str] = None) -> str:
         """
         Create a calendar event with a Google Meet conference solution.
 
         Args:
             topic: The summary / topic of the meeting.
+            delegate_email: Optional email of the user to impersonate.
 
         Returns:
             The live Google Meet URL, or a mock URL fallback.
         """
-        # Generate a distinct mock identifier for unique rooms
-        unique_suffix = uuid.uuid4().hex[:10]
-        # Format: meet.google.com/abc-defg-hij -> three parts of 3, 4, 3 chars
-        mock_meet_url = f"https://meet.google.com/{unique_suffix[:3]}-{unique_suffix[3:7]}-{unique_suffix[7:10]}"
+        # Generate a distinct mock identifier containing only lowercase letters (abc-defg-hij)
+        import random
+        import string
+        letters = string.ascii_lowercase
+        part1 = "".join(random.choice(letters) for _ in range(3))
+        part2 = "".join(random.choice(letters) for _ in range(4))
+        part3 = "".join(random.choice(letters) for _ in range(3))
+        mock_meet_url = f"https://meet.google.com/{part1}-{part2}-{part3}"
 
-        if self._mock_mode or self.service is None:
+        if self._mock_mode:
             logger.warning(
                 "[MOCK] Created virtual Google Meet room '%s' -> %s",
                 topic,
@@ -99,13 +132,21 @@ class GoogleMeetClient:
             )
             return mock_meet_url
 
+        # Try to build service using Domain-Wide Delegation first
+        service = self.get_calendar_service(delegate_email)
+        using_delegation = (delegate_email or settings.GOOGLE_CALENDAR_DELEGATED_EMAIL) is not None
+        
+        if service is None:
+            service = self.service
+            using_delegation = False
+
+        if service is None:
+            return mock_meet_url
+
         try:
             now = datetime.now(timezone.utc)
-            # Create a 30-minute block for the instant meeting
             start_iso = now.isoformat()
             end_iso = (now + timedelta(minutes=30)).isoformat()
-
-            # Unique request ID to ensure idempotency for Meet creation
             request_id = uuid.uuid4().hex
 
             event_payload = {
@@ -121,34 +162,58 @@ class GoogleMeetClient:
                 },
             }
 
-            # Create event with conferenceDataVersion=1 to instruct the Calendar API
-            # to provision a Meet link.
+            # If we are NOT impersonating (delegation failed/unsupported), but we have a configured
+            # delegated email, write directly to that user's shared calendar instead of using "primary"
+            # (which resolves to the license-less service account calendar and throws 400).
+            calendar_id = "primary"
+            if not using_delegation and settings.GOOGLE_CALENDAR_DELEGATED_EMAIL:
+                calendar_id = settings.GOOGLE_CALENDAR_DELEGATED_EMAIL
+                logger.info("Using direct shared calendar ID: %s", calendar_id)
+
             created_event = (
-                self.service.events()
+                service.events()
                 .insert(
-                    calendarId="primary",
+                    calendarId=calendar_id,
                     body=event_payload,
                     conferenceDataVersion=1,
                 )
                 .execute()
             )
 
-            # Extract the generated hangoutLink
+            # Extract hangoutLink
             hangout_link: Optional[str] = created_event.get("hangoutLink")
             if hangout_link:
-                logger.info(
-                    "Google Meet link successfully provisioned: %s",
-                    hangout_link,
-                )
+                logger.info("Google Meet link successfully provisioned: %s", hangout_link)
                 return hangout_link
 
-            logger.warning(
-                "Calendar event created but no Meet hangoutLink returned. "
-                "Using mock fallback."
-            )
+            logger.warning("Calendar event created but no Meet hangoutLink returned. Using mock fallback.")
             return mock_meet_url
 
         except Exception as exc:  # noqa: BLE001
+            # If we attempted impersonation and got unauthorized/invalid_grant,
+            # retry with the base service account credentials writing to the shared calendar ID!
+            if using_delegation and self.service:
+                logger.warning(
+                    "Delegated event creation failed: %s. Retrying using direct service account credentials on shared calendar.",
+                    exc,
+                )
+                try:
+                    calendar_id = settings.GOOGLE_CALENDAR_DELEGATED_EMAIL or delegate_email or "primary"
+                    created_event = (
+                        self.service.events()
+                        .insert(
+                            calendarId=calendar_id,
+                            body=event_payload,
+                            conferenceDataVersion=1,
+                        )
+                        .execute()
+                    )
+                    hangout_link = created_event.get("hangoutLink")
+                    if hangout_link:
+                        return hangout_link
+                except Exception as exc2:  # noqa: BLE001
+                    logger.error("Retry event creation failed: %s", exc2)
+
             logger.error(
                 "Failed to provision Google Meet room via Calendar API: %s. "
                 "Returning mock link.",

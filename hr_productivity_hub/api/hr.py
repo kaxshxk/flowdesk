@@ -38,6 +38,8 @@ from utils.validation import is_valid_email
 class WhitelistCreate(BaseModel):
     allowed_email: str
     assigned_role: UserRole
+    job_title: Optional[str] = None
+    department: Optional[str] = None
     
     @validator('allowed_email')
     def validate_email(cls, v):
@@ -50,6 +52,8 @@ class WhitelistResponse(BaseModel):
     id: int
     allowed_email: str
     assigned_role: UserRole
+    job_title: Optional[str] = None
+    department: Optional[str] = None
     created_by_hr_id: Optional[int] = None
     created_at: str
 
@@ -95,10 +99,32 @@ def create_whitelist_entry(
     new_entry = AccessWhitelist(
         allowed_email=whitelist_data.allowed_email,
         assigned_role=whitelist_data.assigned_role,
+        job_title=whitelist_data.job_title,
+        department=whitelist_data.department,
         created_by_hr_id=current_user.id
     )
-    
     session.add(new_entry)
+    
+    # Proactively create/update the corresponding User record
+    user_stmt = select(User).where(User.company_email == whitelist_data.allowed_email)
+    user = session.exec(user_stmt).first()
+    if not user:
+        new_user = User(
+            company_email=whitelist_data.allowed_email,
+            role=whitelist_data.assigned_role,
+            job_title=whitelist_data.job_title,
+            department=whitelist_data.department,
+            is_active=True
+        )
+        session.add(new_user)
+    else:
+        user.role = whitelist_data.assigned_role
+        if whitelist_data.job_title is not None:
+            user.job_title = whitelist_data.job_title
+        if whitelist_data.department is not None:
+            user.department = whitelist_data.department
+        session.add(user)
+        
     session.commit()
     session.refresh(new_entry)
     
@@ -106,6 +132,8 @@ def create_whitelist_entry(
         id=new_entry.id,
         allowed_email=new_entry.allowed_email,
         assigned_role=new_entry.assigned_role,
+        job_title=new_entry.job_title,
+        department=new_entry.department,
         created_by_hr_id=new_entry.created_by_hr_id,
         created_at=new_entry.created_at.isoformat()
     )
@@ -128,6 +156,8 @@ def get_whitelist(
             id=entry.id,
             allowed_email=entry.allowed_email,
             assigned_role=entry.assigned_role,
+            job_title=entry.job_title,
+            department=entry.department,
             created_by_hr_id=entry.created_by_hr_id,
             created_at=entry.created_at.isoformat()
         )

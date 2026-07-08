@@ -63,10 +63,12 @@ class WebhookEvent(BaseModel):
 class ChatMessageResponse(BaseModel):
     """
     Serialised representation of a single ChatMessage DB record.
+    Includes sender_name resolved from the user table for display.
     """
 
     id: int
     user_id: int
+    sender_name: Optional[str] = None   # resolved email-prefix, e.g. "alice"
     space_id: str
     message_text: str
     direction: MessageDirection
@@ -83,6 +85,12 @@ class ChatHistoryResponse(BaseModel):
     space_id: str
     total: int
     messages: List[ChatMessageResponse]
+
+
+class ChatSpaceInfo(BaseModel):
+    """A known chat space/channel."""
+    id: str
+    label: str
 
 
 class WebhookAck(BaseModel):

@@ -22,6 +22,57 @@ interface UserRequest {
   hr_note: string | null;
 }
 
+// ── Stat card ──────────────────────────────────────────────────────────────
+function KpiCard({
+  label,
+  value,
+  accent,
+  icon,
+  trend,
+  delay = 0,
+}: {
+  label: string;
+  value: number | string;
+  accent: string;
+  icon: React.ReactNode;
+  trend?: string;
+  delay?: number;
+}) {
+  return (
+    <div
+      className={`bg-white border border-gray-100 rounded-2xl p-5 card-lift animate-fade-in-up`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent}`}>
+          {icon}
+        </div>
+        {trend && (
+          <span className="text-[10px] text-gray-400 font-medium">{trend}</span>
+        )}
+      </div>
+      <div className="text-[28px] font-bold text-contrastText tracking-tight animate-count-up">{value}</div>
+      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mt-1">{label}</p>
+    </div>
+  );
+}
+
+// ── Badge ──────────────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: "pending" | "approved" | "declined" }) {
+  const map = {
+    pending:  { cls: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-500",  label: "Pending"  },
+    approved: { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", label: "Approved" },
+    declined: { cls: "bg-rose-50 text-rose-600 border-rose-200",    dot: "bg-rose-500",   label: "Declined" },
+  };
+  const { cls, dot, label } = map[status];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${cls}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      {label}
+    </span>
+  );
+}
+
 export default function HRDashboard() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -29,6 +80,7 @@ export default function HRDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Review modal state
   const [reviewingReq, setReviewingReq] = useState<UserRequest | null>(null);
@@ -43,10 +95,8 @@ export default function HRDashboard() {
     try {
       setLoading(true);
       setError(null);
-      
       const summaryRes = await api.get<Summary>("/hr/dashboard/summary");
       setSummary(summaryRes);
-
       const requestsRes = await api.get<{ requests: UserRequest[] }>("/hr/requests");
       setRequests(requestsRes.requests);
     } catch (err: any) {
@@ -58,6 +108,7 @@ export default function HRDashboard() {
 
   useEffect(() => {
     fetchHRData();
+    setMounted(true);
   }, []);
 
   const openReviewModal = (req: UserRequest, status: "approved" | "declined") => {
@@ -72,12 +123,10 @@ export default function HRDashboard() {
       setActionLoading(true);
       setError(null);
       setSuccess(null);
-
       await api.patch(`/hr/requests/${reviewingReq.id}/review`, {
         status: reviewStatus,
         hr_note: hrNote.trim() || undefined,
       });
-
       setReviewingReq(null);
       setSuccess(`Request successfully ${reviewStatus}!`);
       await fetchHRData();
@@ -94,13 +143,12 @@ export default function HRDashboard() {
       setActionLoading(true);
       setScanResult(null);
       setError(null);
-      
       const res = await api.post<any>(`/hr/integrity/trigger/${scanUser}`);
       setScanResult(res);
       if (res.tamper_detected) {
-        setError("CRITICAL WARNING: Signature mismatches or manual tampering detected in Google Sheet!");
+        setError("CRITICAL: Signature mismatches detected in Google Sheet!");
       } else {
-        setSuccess("Ledger check complete: All signatures are authentic!");
+        setSuccess("Ledger check complete — all signatures are authentic.");
       }
     } catch (err: any) {
       setError(err?.message || "Failed to perform integrity check.");
@@ -109,110 +157,170 @@ export default function HRDashboard() {
     }
   };
 
+  const skeletonCard = (
+    <div className="bg-white border border-gray-100 rounded-2xl p-5">
+      <div className="skeleton w-9 h-9 rounded-xl mb-4" />
+      <div className="skeleton h-7 w-1/2 rounded-lg mb-2" />
+      <div className="skeleton h-3 w-2/3 rounded" />
+    </div>
+  );
+
   return (
-    <TeamsShell title="HR Operations Control Panel">
+    <TeamsShell title="HR Operations">
+
+      {/* Alerts */}
       {error && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-primaryAccent rounded-2xl text-sm text-canvasBg font-medium">
-          <span>{error}</span>
+        <div className="flex items-center gap-2.5 px-4 py-3 mb-6 bg-rose-50 border border-rose-200 rounded-xl text-[12px] text-rose-700 font-medium animate-scale-in">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
+          <button onClick={() => setError(null)} className="ml-auto text-rose-400 hover:text-rose-600">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 p-4 mb-6 bg-successBadge rounded-2xl text-sm text-contrastText font-medium">
-          <span>{success}</span>
+        <div className="flex items-center gap-2.5 px-4 py-3 mb-6 bg-emerald-50 border border-emerald-200 rounded-xl text-[12px] text-emerald-700 font-medium animate-scale-in">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {success}
+          <button onClick={() => setSuccess(null)} className="ml-auto text-emerald-400 hover:text-emerald-600">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       )}
 
-      {/* Aggregate Stats */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 bg-cardBacking rounded-3xl animate-pulse opacity-60"></div>
-          ))}
-        </div>
-      ) : (
-        summary && (
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-8">
-            <div className="bg-cardBacking rounded-3xl p-6 relative overflow-hidden">
-              <div className="text-3xl font-extrabold text-contrastText tracking-tight">{summary.total_employees}</div>
-              <div className="text-xs text-contrastText/70 mt-1.5 font-semibold uppercase tracking-wide">Active Employees</div>
-              <div className="absolute bottom-0 right-0 w-16 h-16 bg-contrastText/5 rounded-full -mb-6 -mr-4" />
+      {/* Page header */}
+      <div className={`mb-8 ${mounted ? "animate-fade-in-up" : "opacity-0"}`}>
+        <h1 className="text-[22px] font-bold text-contrastText tracking-tight">Operations Overview</h1>
+        <p className="text-[13px] text-gray-500 mt-1">
+          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+        </p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {loading ? (
+          <>{skeletonCard}{skeletonCard}{skeletonCard}{skeletonCard}</>
+        ) : summary && (
+          <>
+            <KpiCard
+              label="Total Employees"
+              value={summary.total_employees}
+              accent="bg-indigo-50 text-primaryAccent"
+              delay={0}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+            />
+            <KpiCard
+              label="Clocked In Now"
+              value={summary.currently_clocked_in}
+              accent="bg-emerald-50 text-emerald-600"
+              delay={80}
+              trend="Live"
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+            />
+            <KpiCard
+              label="Pending Requests"
+              value={summary.pending_leaves_count}
+              accent="bg-amber-50 text-amber-600"
+              delay={160}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
+            />
+            <KpiCard
+              label="Unresolved Alerts"
+              value={summary.unresolved_alerts_count}
+              accent="bg-rose-50 text-rose-500"
+              delay={240}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Request Queue */}
+        <div className={`lg:col-span-2 bg-white border border-gray-100 rounded-2xl overflow-hidden card-lift ${mounted ? "animate-fade-in-up delay-300" : "opacity-0"}`}>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+              <h3 className="text-[14px] font-bold text-contrastText">Requests Queue</h3>
+              <p className="text-[11px] text-gray-400 mt-0.5">Employee leave & WFH arrangements</p>
             </div>
-            <div className="bg-successBadge rounded-3xl p-6 relative overflow-hidden">
-              <div className="text-3xl font-extrabold text-contrastText tracking-tight">{summary.currently_clocked_in}</div>
-              <div className="text-xs text-contrastText/70 mt-1.5 font-semibold uppercase tracking-wide">Clocked In</div>
-              <div className="absolute bottom-0 right-0 w-16 h-16 bg-contrastText/5 rounded-full -mb-6 -mr-4" />
-            </div>
-            <div className="bg-softHighlight rounded-3xl p-6 relative overflow-hidden">
-              <div className="text-3xl font-extrabold text-contrastText tracking-tight">{summary.pending_leaves_count}</div>
-              <div className="text-xs text-contrastText/70 mt-1.5 font-semibold uppercase tracking-wide">Pending Requests</div>
-              <div className="absolute bottom-0 right-0 w-16 h-16 bg-contrastText/5 rounded-full -mb-6 -mr-4" />
-            </div>
-            <div className="bg-sidebarBacking rounded-3xl p-6 relative overflow-hidden">
-              <div className="text-3xl font-extrabold text-canvasBg tracking-tight">{summary.unresolved_alerts_count}</div>
-              <div className="text-xs text-canvasBg/70 mt-1.5 font-semibold uppercase tracking-wide">Unresolved Alerts</div>
-              <div className="absolute bottom-0 right-0 w-16 h-16 bg-canvasBg/5 rounded-full -mb-6 -mr-4" />
-            </div>
+            <span className="px-2.5 py-1 bg-indigo-50 text-primaryAccent border border-indigo-100 rounded-full text-[10px] font-semibold">
+              {requests.filter(r => r.status === "pending").length} pending
+            </span>
           </div>
-        )
-      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Leaves Request Review List */}
-        <div className="lg:col-span-2 bg-cardBacking shadow-ambient border border-secondaryElement/20 shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-2xl p-6">
-          <h3 className="text-md font-bold text-contrastText mb-4">Employee Arrangements Queue</h3>
           {loading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-canvasBg/50 rounded w-3/4"></div>
-              <div className="h-4 bg-canvasBg/50 rounded"></div>
+            <div className="p-6 space-y-3">
+              <div className="skeleton h-12 rounded-xl" />
+              <div className="skeleton h-12 rounded-xl" />
+              <div className="skeleton h-12 rounded-xl" />
             </div>
           ) : requests.length === 0 ? (
-            <div className="text-center py-12 text-contrastText/40">
-              <span className="text-3xl block mb-2"></span>
-              <p className="text-sm">No requests currently registered in queue.</p>
+            <div className="text-center py-16 text-gray-400">
+              <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <p className="text-[13px] font-medium text-gray-400">No requests in queue</p>
+              <p className="text-[11px] text-gray-300 mt-1">Employee requests will appear here</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-secondaryElement/20 text-contrastText/50 text-xs font-semibold uppercase">
-                    <th className="py-3 px-4">Emp ID</th>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Dates</th>
-                    <th className="py-3 px-4">Note</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Action</th>
+                  <tr className="border-b border-gray-100">
+                    <th className="py-3 px-6 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Employee</th>
+                    <th className="py-3 px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Type</th>
+                    <th className="py-3 px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Dates</th>
+                    <th className="py-3 px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="py-3 px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-misty-sky/10 text-contrastText/85">
-                  {requests.map((req) => (
-                    <tr key={req.id} className="hover:bg-canvasBg/15 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-contrastText">User #{req.user_id}</td>
-                      <td className="py-3.5 px-4">{req.request_type === "leave" ? "Leave" : "WFH"}</td>
-                      <td className="py-3.5 px-4 text-xs text-contrastText/60">{req.start_date} to {req.end_date}</td>
-                      <td className="py-3.5 px-4 text-xs text-contrastText/60">{req.employee_note || "-"}</td>
+                <tbody className="divide-y divide-gray-50">
+                  {requests.map((req, i) => (
+                    <tr key={req.id} className="hover:bg-gray-50/60 transition-colors" style={{ animationDelay: `${i * 40}ms` }}>
+                      <td className="py-3.5 px-6">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-indigo-50 flex items-center justify-center text-[10px] font-bold text-primaryAccent">
+                            {req.user_id}
+                          </div>
+                          <span className="text-[12px] font-semibold text-contrastText">User #{req.user_id}</span>
+                        </div>
+                      </td>
                       <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                          req.status === "approved"
-                            ? "bg-successBadge/15 text-contrastText border-successBadge/35"
-                            : req.status === "declined"
-                            ? "bg-primaryAccent/15 text-primaryAccent border-primaryAccent/30"
-                            : "bg-softHighlight/35 text-primaryAccent border-softHighlight/45"
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-semibold ${
+                          req.request_type === "leave"
+                            ? "bg-violet-50 text-violet-600"
+                            : "bg-blue-50 text-blue-600"
                         }`}>
-                          {req.status}
+                          {req.request_type === "leave" ? "Leave" : "WFH"}
                         </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[11px] text-gray-500">
+                        {req.start_date} → {req.end_date}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <StatusBadge status={req.status} />
                       </td>
                       <td className="py-3.5 px-4">
                         {req.status === "pending" && (
                           <div className="flex gap-2">
                             <button
                               onClick={() => openReviewModal(req, "approved")}
-                              className="px-2.5 py-1 bg-successBadge/20 hover:bg-successBadge/30 text-contrastText font-semibold text-xs rounded-lg transition-colors transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95"
+                              className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-[10px] rounded-lg transition-all duration-150 border border-emerald-200"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => openReviewModal(req, "declined")}
-                              className="px-2.5 py-1 bg-primaryAccent/10 hover:bg-primaryAccent/20 text-primaryAccent font-semibold text-xs rounded-lg transition-colors transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95"
+                              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-[10px] rounded-lg transition-all duration-150 border border-rose-200"
                             >
                               Decline
                             </button>
@@ -227,107 +335,152 @@ export default function HRDashboard() {
           )}
         </div>
 
-        {/* Cryptographic Ledger verification trigger */}
-        <div className="bg-cardBacking shadow-ambient border border-secondaryElement/20 shadow-[0_8px_30px_rgb(0,0,0,0.01)] rounded-2xl p-6 h-fit flex flex-col gap-4">
-          <h3 className="text-md font-bold text-contrastText">Cryptographic Integrity Auditing</h3>
-          <p className="text-xs text-contrastText/60">
-            Query the target employee's spreadsheet ledger and recalculate HMAC-SHA256 signatures for tamper checks.
+        {/* Integrity Scanner */}
+        <div className={`bg-white border border-gray-100 rounded-2xl p-6 h-fit card-lift ${mounted ? "animate-fade-in-up delay-400" : "opacity-0"}`}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-primaryAccent">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-[14px] font-bold text-contrastText">Integrity Auditor</h3>
+              <p className="text-[11px] text-gray-400">HMAC-SHA256 verification</p>
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-500 mb-5 leading-relaxed">
+            Run a cryptographic ledger check to verify tamper-free HMAC signatures for any employee's spreadsheet.
           </p>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-contrastText/70" htmlFor="scanUser">Target User ID</label>
-            <input
-              id="scanUser"
-              type="number"
-              className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText outline-none transition-all"
-              placeholder="e.g. 1"
-              value={scanUser}
-              onChange={(e) => setScanUser(e.target.value)}
-              disabled={actionLoading}
-            />
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-gray-600" htmlFor="scanUser">Target User ID</label>
+              <input
+                id="scanUser"
+                type="number"
+                className="input-premium text-[13px]"
+                placeholder="Enter user ID (e.g. 1)"
+                value={scanUser}
+                onChange={(e) => setScanUser(e.target.value)}
+                disabled={actionLoading}
+              />
+            </div>
+
+            <button
+              id="integrityTriggerBtn"
+              onClick={handleIntegrityTrigger}
+              disabled={actionLoading || !scanUser}
+              className="btn-primary w-full text-[12px] py-2.5"
+            >
+              {actionLoading ? (
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  Run Verification Scan
+                </>
+              )}
+            </button>
           </div>
 
-          <button
-            onClick={handleIntegrityTrigger}
-            className="w-full py-3 bg-primaryAccent hover:bg-primaryAccent/95 transition-colors text-canvasBg font-semibold text-sm rounded-xl transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95"
-            disabled={actionLoading || !scanUser}
-          >
-            {actionLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-canvasBg"></div>
-            ) : (
-              "Trigger Verification Scan"
-            )}
-          </button>
-
           {scanResult && (
-            <div className={`mt-4 p-4 border rounded-2xl text-center ${
-              scanResult.tamper_detected 
-                ? "bg-primaryAccent/15 border-primaryAccent/30 text-primaryAccent" 
-                : "bg-successBadge/15 border-successBadge/35 text-contrastText"
+            <div className={`mt-5 p-4 rounded-xl border text-center animate-scale-in ${
+              scanResult.tamper_detected
+                ? "bg-rose-50 border-rose-200"
+                : "bg-emerald-50 border-emerald-200"
             }`}>
-              <div className="text-sm font-bold">
-                Status: {scanResult.tamper_detected ? "TAMPERED" : "VERIFIED"}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                scanResult.tamper_detected ? "bg-rose-100" : "bg-emerald-100"
+              }`}>
+                {scanResult.tamper_detected ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E11D48" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
               </div>
-              <p className="text-xs text-contrastText/60 mt-1">
-                {scanResult.message}
-              </p>
+              <div className={`text-[13px] font-bold mb-1 ${scanResult.tamper_detected ? "text-rose-700" : "text-emerald-700"}`}>
+                {scanResult.tamper_detected ? "Tampering Detected" : "Verified & Clean"}
+              </div>
+              <p className="text-[11px] text-gray-500">{scanResult.message}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Review Modal popup */}
+      {/* Review Modal */}
       {reviewingReq && (
-        <div className="fixed inset-0 flex items-center justify-center bg-sidebarBacking/40 backdrop-blur-sm z-50 p-4 animate-fade-in-up">
-          <div className="w-full max-w-md bg-cardBacking shadow-ambient border border-secondaryElement/20 rounded-3xl p-8 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-md font-bold text-contrastText">Review Request (User #{reviewingReq.user_id})</h4>
-              <button className="text-xl text-contrastText/40 hover:text-contrastText" onClick={() => setReviewingReq(null)}>×</button>
-            </div>
-            
-            <div className="mb-4 space-y-1">
-              <div className="text-xs text-contrastText/75">
-                <strong>Arrangement:</strong> {reviewingReq.request_type.toUpperCase()} ({reviewingReq.start_date} to {reviewingReq.end_date})
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px] z-50 p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 animate-scale-in">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h4 className="text-[14px] font-bold text-contrastText">Review Request</h4>
+                <p className="text-[11px] text-gray-400 mt-0.5">User #{reviewingReq.user_id} · {reviewingReq.request_type.toUpperCase()}</p>
               </div>
-              <div className="text-xs text-contrastText/50">
-                <strong>Employee note:</strong> {reviewingReq.employee_note || "-"}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 mb-6">
-              <label className="text-xs font-semibold text-contrastText/70" htmlFor="hrNoteInput">HR Reviewer Comment</label>
-              <textarea
-                id="hrNoteInput"
-                className="w-full bg-canvasBg/40 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/30 transition-all outline-none min-h-[80px]"
-                placeholder="Include reviewer comments (max 300 chars)..."
-                maxLength={300}
-                value={hrNote}
-                onChange={(e) => setHrNote(e.target.value)}
-                disabled={actionLoading}
-              />
-            </div>
-
-            <div className="flex justify-between gap-4">
               <button
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
                 onClick={() => setReviewingReq(null)}
-                className="px-4 py-2.5 bg-canvasBg/20 border border-secondaryElement/20 text-contrastText/60 hover:text-contrastText text-xs font-semibold rounded-xl"
-                disabled={actionLoading}
               >
-                Cancel
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <button
-                onClick={handleReviewSubmit}
-                className={`px-5 py-2.5 text-canvasBg font-semibold text-xs rounded-xl ${
-                  reviewStatus === "approved" ? "bg-successBadge text-contrastText hover:bg-successBadge/95" : "bg-primaryAccent hover:bg-primaryAccent/95"
-                }`}
-                disabled={actionLoading}
-              >
-                {actionLoading ? (
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-canvasBg"></div>
-                ) : (
-                  `Confirm ${reviewStatus}`
-                )}
-              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 space-y-1.5 text-[12px]">
+                <div className="flex gap-2">
+                  <span className="text-gray-400 min-w-[80px]">Period</span>
+                  <span className="font-medium text-contrastText">{reviewingReq.start_date} to {reviewingReq.end_date}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-gray-400 min-w-[80px]">Employee note</span>
+                  <span className="font-medium text-contrastText">{reviewingReq.employee_note || "—"}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-gray-700" htmlFor="hrNoteInput">HR Comment (optional)</label>
+                <textarea
+                  id="hrNoteInput"
+                  className="input-premium min-h-[80px] resize-none text-[12px]"
+                  placeholder="Add a reviewer note..."
+                  maxLength={300}
+                  value={hrNote}
+                  onChange={(e) => setHrNote(e.target.value)}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setReviewingReq(null)}
+                  className="flex-1 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold text-[12px] rounded-xl hover:bg-gray-100 transition-all"
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReviewSubmit}
+                  className={`flex-1 py-2.5 text-white font-semibold text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 ${
+                    reviewStatus === "approved"
+                      ? "bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-200"
+                      : "bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-200"
+                  }`}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? (
+                    <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                  ) : reviewStatus === "approved" ? "✓ Approve" : "✕ Decline"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

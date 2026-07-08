@@ -61,6 +61,29 @@ async def lifespan(app: FastAPI):
         alembic_cfg.set_main_option("script_location", os.path.join(base_dir, "alembic"))
         command.upgrade(alembic_cfg, "head")
         logger.info("Database migrations successfully applied to head.")
+        
+        # SQLite schema auto-upgrade for profile columns
+        if "sqlite" in settings.DATABASE_URL:
+            try:
+                import sqlite3
+                db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+                conn = sqlite3.connect(db_path)
+                for col in ["full_name", "job_title", "department", "phone_number", "bio", "avatar_url"]:
+                    try:
+                        conn.execute(f"ALTER TABLE user ADD COLUMN {col} TEXT")
+                        logger.info("Auto-migrated: added column '%s' to user table", col)
+                    except Exception:
+                        pass
+                for col in ["job_title", "department"]:
+                    try:
+                        conn.execute(f"ALTER TABLE accesswhitelist ADD COLUMN {col} TEXT")
+                        logger.info("Auto-migrated: added column '%s' to accesswhitelist table", col)
+                    except Exception:
+                        pass
+                conn.commit()
+                conn.close()
+            except Exception as exc:
+                logger.warning("Could not auto-upgrade sqlite schema: %s", exc)
     except Exception as exc:
         logger.warning(
             "Could not connect to the database or apply migrations on startup: %s. "
@@ -102,6 +125,14 @@ if settings.BACKEND_CORS_ORIGINS:
 from fastapi.responses import JSONResponse
 from fastapi import Request
 
+
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Mount local static files directory for local uploads
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+os.makedirs(os.path.join(static_dir, "uploads"), exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Include routes
 app.include_router(router)

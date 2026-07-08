@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, field_serializer
 from datetime import datetime
 from typing import Optional, List
 
@@ -37,6 +37,12 @@ class TaskResponse(BaseModel):
     timestamp: datetime
     hmac_hash: str
     google_sheet_id: Optional[str] = None
+
+    @field_serializer("timestamp")
+    def serialize_dt(self, dt: datetime) -> str:
+        if dt.tzinfo is None:
+            return dt.isoformat() + "Z"
+        return dt.isoformat()
 
     model_config = {"from_attributes": True}
 

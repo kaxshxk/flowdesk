@@ -51,7 +51,7 @@ def create_meet_room(
     topic = payload.topic or "Instant Sync"
 
     # --- 1. Provision Meet Link ----------------------------------------------
-    meet_url = meet_client.create_instant_meet_room(topic)
+    meet_url = meet_client.create_instant_meet_room(topic, delegate_email=current_user.company_email)
 
     # --- 2. Persist Meet Log -------------------------------------------------
     meet_log = MeetLog(

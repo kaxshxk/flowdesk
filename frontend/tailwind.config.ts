@@ -10,27 +10,27 @@ const config: Config = {
     extend: {
       colors: {
         // ── FlowDesk Brand Tokens ──────────────────────────────────────────────
-        canvasBg:         "#FFF7E6",  // Vanilla Cream – base page backdrop
-        contrastText:     "#2D3A47",  // Midnight Lagoon – primary type / icons
-        primaryAccent:    "#B46A72",  // Rosewood – buttons, active states, CTAs
-        secondaryElement: "#A9B7C6",  // Misty Sky – secondary UI, borders, tags
-        softHighlight:    "#F7C8D3",  // Blush Petal – warm accent, hover badges
-        successBadge:     "#A8B58A",  // Sage Leaf – success states, clock-in
+        canvasBg:         "#F8FAFC",  // Off-white/slate-50 canvas
+        contrastText:     "#0F172A",  // Slate-900 primary text
+        primaryAccent:    "#8B5CF6",  // Lavender-purple
+        secondaryElement: "#E2E8F0",  // Slate-200 dividers
+        softHighlight:    "#EDE9FE",  // Soft lavender highlight
+        successBadge:     "#10B981",  // Emerald
 
         // ── Functional Layout Aliases ─────────────────────────────────────────
-        cardBacking:    "#A9B7C6",    // Misty Sky  – card / panel backgrounds
-        sidebarBacking: "#2D3A47",   // Midnight Lagoon – sidebar / nav shell
+        cardBacking:    "#FFFFFF",    // White cards
+        sidebarBacking: "#F1F5F9",    // Light slate sidebar
 
         // ── Legacy mappings kept for existing Tailwind classes ────────────────
-        "vanilla-cream":    "#FFF7E6",
-        "blush-petal":      "#F7C8D3",
-        "rosewood":         "#B46A72",
-        "sage-leaf":        "#A8B58A",
-        "misty-sky":        "#A9B7C6",
-        "midnight-lagoon":  "#2D3A47",
+        "vanilla-cream":    "#F8FAFC",
+        "blush-petal":      "#EDE9FE",
+        "rosewood":         "#8B5CF6",
+        "sage-leaf":        "#10B981",
+        "misty-sky":        "#E2E8F0",
+        "midnight-lagoon":  "#0F172A",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
       },
       borderRadius: {
         "2xl": "1rem",

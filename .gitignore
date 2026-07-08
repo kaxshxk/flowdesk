@@ -72,3 +72,9 @@ logs/
 md_source_backup/
 md_source_backup_2/
 
+# ── Static Uploads ────────────────────────────────────────────────────────────
+hr_productivity_hub/static/
+
+# ── Service Account JSON ──────────────────────────────────────────────────────
+hr_productivity_hub/flowdesk-hr-hub-*.json
+

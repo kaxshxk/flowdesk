@@ -1,7 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+
+const features = [
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+    ),
+    label: "Attendance Tracking",
+    desc: "Real-time clock-in / out with session timers",
+    accent: "bg-indigo-50 text-indigo-500",
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    ),
+    label: "Task Ledger",
+    desc: "HMAC-signed task entries for tamper-proof audits",
+    accent: "bg-emerald-50 text-emerald-500",
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+    label: "File Vault",
+    desc: "Date-partitioned Google Drive archiving",
+    accent: "bg-violet-50 text-violet-500",
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+    label: "Team Chat",
+    desc: "Live workspace messaging across all spaces",
+    accent: "bg-sky-50 text-sky-500",
+  },
+];
 
 export default function LoginPage() {
   const { loginWithMock } = useAuth();
@@ -10,13 +53,17 @@ export default function LoginPage() {
   const [role, setRole] = useState<"hr" | "employee">("employee");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     setBusy(true);
     setError(null);
-
     try {
       await loginWithMock(email, role);
     } catch (err: any) {
@@ -27,218 +74,194 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-canvasBg overflow-hidden">
-      {/*  LEFT BRANDING PANEL  */}
-      <aside className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blush-petal/40 via-vanilla-cream to-misty-sky/30 flex-col justify-between p-16 border-r border-secondaryElement/20">
-        
-        {/* Ambient Glowing Blobs */}
-        <div className="absolute top-10 right-10 w-96 h-96 bg-softHighlight/40 rounded-full blur-3xl animate-pulse duration-10000 pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-successBadge/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-secondaryElement/30 rounded-full blur-3xl pointer-events-none" />
+    <div className="flex min-h-screen bg-white overflow-hidden">
 
-        {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2D3A47" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
+      {/* LEFT — Branding Panel */}
+      <aside className="hidden lg:flex lg:w-[45%] relative flex-col justify-between p-14 bg-[#FAFBFF] border-r border-gray-100 overflow-hidden">
 
-        {/* Logo / Header */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-12 h-12 bg-canvasBg/70 backdrop-blur rounded-2xl flex items-center justify-center text-primaryAccent font-extrabold text-xl shadow-sm border border-canvasBg/60">
+        {/* Ambient background blobs */}
+        <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] rounded-full bg-indigo-100/70 blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-[-60px] left-[-60px] w-[380px] h-[380px] rounded-full bg-violet-100/50 blur-[80px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-blue-50/80 blur-[60px] pointer-events-none" />
+
+        {/* Logo */}
+        <div className={`relative z-10 flex items-center gap-3 ${mounted ? "animate-fade-in" : "opacity-0"}`}>
+          <div className="w-9 h-9 bg-primaryAccent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-200">
             FD
           </div>
           <div>
-            <h1 className="text-xl font-bold text-contrastText tracking-tight">FlowDesk</h1>
-            <p className="text-xs text-contrastText/60 font-semibold uppercase tracking-wider">HR & Productivity Hub</p>
+            <h1 className="text-[15px] font-bold text-contrastText tracking-tight">FlowDesk</h1>
+            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">HR & Productivity Hub</p>
           </div>
         </div>
 
-        {/* Hero Copy & Feature Pills */}
-        <div className="relative z-10 space-y-8 my-auto">
+        {/* Hero */}
+        <div className={`relative z-10 space-y-10 ${mounted ? "animate-fade-in-up delay-100" : "opacity-0"}`}>
           <div className="space-y-4">
-            <h2 className="text-4xl font-extrabold text-contrastText leading-[1.2] tracking-tight">
-              Your unified workspace for <span className="text-primaryAccent">HR operations</span> & employee productivity
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[11px] font-semibold text-primaryAccent">
+              <span className="w-1.5 h-1.5 rounded-full bg-primaryAccent animate-pulse" />
+              Workspace productivity, unified
+            </div>
+            <h2 className="text-[36px] font-bold text-contrastText leading-[1.18] tracking-tight">
+              Everything your team needs,{" "}
+              <span className="text-primaryAccent">in one place.</span>
             </h2>
-            <p className="text-base text-contrastText/70 leading-relaxed max-w-md">
-              Seamlessly manage attendance tracking, task ledger systems, activity logs, and real-time operations in one lightweight platform.
+            <p className="text-[14px] text-gray-500 leading-relaxed max-w-[380px]">
+              Attendance, tasks, files, requests and team chat — managed from a single clean interface built for modern HR teams.
             </p>
           </div>
 
-          {/* Color-coded Multi-color Pills */}
-          <div className="flex flex-wrap gap-2.5 max-w-md">
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-successBadge/15 text-contrastText border border-successBadge/35 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-successBadge" />
-              Attendance Audit
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-softHighlight/25 text-primaryAccent border border-softHighlight/45 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-primaryAccent" />
-              Task Ledger
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-cardBacking shadow-ambient text-contrastText border border-secondaryElement/30 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-secondaryElement" />
-              File Vault
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-successBadge/15 text-contrastText border border-successBadge/35 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-successBadge" />
-              Live Workspace Chat
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-softHighlight/25 text-primaryAccent border border-softHighlight/45 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-primaryAccent" />
-              Cryptographic Signatures
-            </span>
+          {/* Feature tiles */}
+          <div className="grid grid-cols-2 gap-3 max-w-[400px]">
+            {features.map((f, i) => (
+              <div
+                key={f.label}
+                className={`bg-white/70 border border-gray-100 rounded-2xl p-4 backdrop-blur-sm card-lift ${mounted ? `animate-fade-in-up` : "opacity-0"}`}
+                style={{ animationDelay: `${200 + i * 80}ms` }}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${f.accent}`}>
+                  {f.icon}
+                </div>
+                <p className="text-[12px] font-semibold text-contrastText">{f.label}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Floating Showcase Widgets */}
-          <div className="relative pt-6 flex flex-col gap-4 max-w-sm">
-            {/* Widget 1 */}
-            <div className="bg-canvasBg/80 border border-secondaryElement/20 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.015)] backdrop-blur-md transform hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primaryAccent/10 flex items-center justify-center text-primaryAccent font-bold text-xs">SJ</div>
-                  <div>
-                    <p className="text-xs font-bold text-contrastText">Sarah Jenkins</p>
-                    <p className="text-[10px] text-contrastText/50">Product Designer</p>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-successBadge/20 text-contrastText border border-successBadge/30">
-                  Clocked In
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-canvasBg rounded-full overflow-hidden">
-                <div className="h-full w-4/5 bg-successBadge rounded-full" />
-              </div>
-              <div className="flex justify-between items-center mt-2 text-[9px] text-contrastText/50">
-                <span>Shift progress</span>
-                <span>80% completed</span>
-              </div>
+          {/* Social proof strip */}
+          <div className="flex items-center gap-3 pt-2">
+            <div className="flex -space-x-2">
+              {["A", "M", "S", "R"].map((l, i) => (
+                <div key={i} className={`w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white ${["bg-indigo-400","bg-violet-400","bg-blue-400","bg-teal-400"][i]}`}>{l}</div>
+              ))}
             </div>
-
-            {/* Widget 2 */}
-            <div className="bg-canvasBg/80 border border-secondaryElement/20 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.015)] backdrop-blur-md self-end w-4/5 transform hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[9px] font-bold text-contrastText/50 uppercase tracking-wider">Cryptographic Signature</span>
-                <span className="text-[9px] font-bold text-successBadge">Verified</span>
-              </div>
-              <div className="text-[10px] font-mono text-contrastText/70 bg-canvasBg/50 p-2 rounded-lg border border-secondaryElement/15 truncate">
-                sha256: 8f3a9e01b3c9429188a10738e
-              </div>
-            </div>
+            <p className="text-[11px] text-gray-400">Used by teams every day</p>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="relative z-10 text-xs text-contrastText/50 font-medium">
-          Secured with role-based access control and HMAC signature audits.
+        <p className={`relative z-10 text-[11px] text-gray-400 font-medium ${mounted ? "animate-fade-in delay-500" : "opacity-0"}`}>
+          Secured with RBAC & HMAC-SHA256 signature audits.
         </p>
       </aside>
 
-      {/*  RIGHT AUTH PANEL  */}
-      <main className="flex flex-1 items-center justify-center bg-canvasBg/35 px-6 py-12 relative overflow-hidden">
-        {/* Mobile / background decoration */}
-        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-softHighlight/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-secondaryElement/15 rounded-full blur-3xl pointer-events-none" />
+      {/* RIGHT — Auth Panel */}
+      <main className="flex flex-1 items-center justify-center bg-white px-6 py-12 relative overflow-hidden">
 
-        <div className="relative z-10 w-full max-w-md">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #6366F1 1px, transparent 0)", backgroundSize: "28px 28px" }}
+        />
+
+        <div className={`relative z-10 w-full max-w-[380px] ${mounted ? "animate-fade-in-up" : "opacity-0"}`}>
+
           {/* Mobile logo */}
           <div className="flex items-center gap-3 mb-10 lg:hidden">
-            <div className="w-11 h-11 bg-gradient-to-tr from-rosewood to-blush-petal rounded-xl flex items-center justify-center text-canvasBg font-extrabold text-lg shadow-md">
-              FD
-            </div>
+            <div className="w-9 h-9 bg-primaryAccent rounded-xl flex items-center justify-center text-white font-bold text-sm">FD</div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-contrastText">FlowDesk</h1>
-              <p className="text-xs text-contrastText/55 font-medium">HR & Productivity Hub</p>
+              <h1 className="text-[15px] font-bold text-contrastText">FlowDesk</h1>
+              <p className="text-[10px] text-gray-400">HR & Productivity Hub</p>
             </div>
           </div>
 
-          {/* Form Card */}
-          <div className="bg-cardBacking shadow-ambient border border-softHighlight/40 rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.015)] backdrop-blur-sm">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold tracking-tight text-contrastText">Welcome to FlowDesk</h2>
-              <p className="mt-1.5 text-sm text-contrastText/60 leading-relaxed">
-                Sign in to your workspace below.
-              </p>
-            </div>
-
-            {/* Dev mode banner */}
-            <div className="flex items-start gap-2.5 p-3.5 mb-6 bg-canvasBg/60 border border-secondaryElement/20 rounded-2xl text-xs text-primaryAccent font-medium">
-              <span></span>
-              <span><strong>Dev Mode</strong>: Enter any whitelisted email to mock authenticate into your portal.</span>
-            </div>
-
-            {/* Error banner */}
-            {error && (
-              <div className="flex items-start gap-3 p-4 mb-6 rounded-2xl border bg-primaryAccent/15 border-primaryAccent/30 text-sm text-primaryAccent">
-                <span className="mt-0.5 shrink-0"></span>
-                <p>{error}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="mockEmail" className="text-xs font-semibold text-contrastText/70">
-                  Email Address
-                </label>
-                <input
-                  id="mockEmail"
-                  type="email"
-                  required
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={busy}
-                  className="w-full bg-canvasBg/30 border border-secondaryElement/30 focus:border-primaryAccent focus:ring-2 focus:ring-rosewood/10 rounded-xl px-4 py-3 text-sm text-contrastText placeholder-contrastText/30 outline-none transition-all"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-contrastText/70">Sign in as</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRole("employee")}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border font-medium text-sm transition-all transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95 ${
-                      role === "employee"
-                        ? "bg-primaryAccent text-canvasBg border-primaryAccent shadow-sm font-semibold"
-                        : "bg-cardBacking/30 border-secondaryElement/20 text-contrastText/50 hover:border-secondaryElement/45"
-                    }`}
-                  >
-                    <span className="text-xs font-semibold">Employee Portal</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole("hr")}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border font-medium text-sm transition-all transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95 ${
-                      role === "hr"
-                        ? "bg-primaryAccent text-canvasBg border-primaryAccent shadow-sm font-semibold"
-                        : "bg-cardBacking/30 border-secondaryElement/20 text-contrastText/50 hover:border-secondaryElement/45"
-                    }`}
-                  >
-                    <span className="text-xs font-semibold">HR Admin Portal</span>
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={busy || !email.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 mt-2 bg-primaryAccent hover:bg-primaryAccent/95 hover:shadow-lg hover:shadow-ambient transition-all text-canvasBg font-semibold text-sm rounded-xl transition-all duration-200 ease-out active:scale-[0.97] hover:opacity-95 disabled:bg-primaryAccent/20 disabled:text-contrastText/30 disabled:cursor-not-allowed disabled:shadow-none"
-              >
-                {busy ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-canvasBg" />
-                ) : (
-                  "Enter Workspace"
-                )}
-              </button>
-            </form>
+          {/* Header */}
+          <div className="mb-8">
+            <h2 className="text-[26px] font-bold text-contrastText tracking-tight">Welcome back</h2>
+            <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">
+              Sign in to your workspace to continue.
+            </p>
           </div>
 
-          <p className="text-center text-[11px] text-contrastText/40 mt-8 font-medium">
+          {/* Dev mode notice */}
+          <div className="flex items-center gap-2.5 px-4 py-3 mb-6 bg-amber-50 border border-amber-200/80 rounded-xl text-[12px] text-amber-700 font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span><strong>Dev Mode:</strong> Enter any whitelisted email to authenticate.</span>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-start gap-2.5 px-4 py-3 mb-5 bg-rose-50 border border-rose-200 rounded-xl text-[12px] text-rose-700 font-medium animate-scale-in">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              <p>{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="mockEmail" className="text-[12px] font-semibold text-gray-700">
+                Work email address
+              </label>
+              <input
+                id="mockEmail"
+                type="email"
+                required
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={busy}
+                className="input-premium"
+              />
+            </div>
+
+            {/* Role selector */}
+            <div className="space-y-1.5">
+              <label className="text-[12px] font-semibold text-gray-700">Access portal</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["employee", "hr"] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-[12px] font-semibold transition-all duration-200
+                      ${role === r
+                        ? "bg-primaryAccent text-white border-primaryAccent shadow-md shadow-indigo-200/60"
+                        : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 hover:bg-white"
+                      }`}
+                  >
+                    {r === "employee" ? (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    ) : (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    )}
+                    {r === "employee" ? "Employee" : "HR Admin"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              id="loginSubmitBtn"
+              disabled={busy || !email.trim()}
+              className="btn-primary w-full py-3 mt-2 text-[13px]"
+            >
+              {busy ? (
+                <svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              ) : (
+                <>
+                  Enter Workspace
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-[11px] text-gray-400 mt-8">
             © 2026 FlowDesk · HR & Productivity Hub
           </p>
         </div>

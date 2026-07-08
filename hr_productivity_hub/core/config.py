@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     # Google Drive settings
     GOOGLE_DRIVE_CREDENTIALS: Optional[str] = None
+    GOOGLE_DRIVE_REFRESH_TOKEN: Optional[str] = None
     GOOGLE_DRIVE_ROOT_FOLDER_ID: Optional[str] = None
 
     # Google Chat settings
@@ -41,6 +42,7 @@ class Settings(BaseSettings):
 
     # Google Calendar / Meet settings
     GOOGLE_CALENDAR_CREDENTIALS: Optional[str] = None
+    GOOGLE_CALENDAR_DELEGATED_EMAIL: Optional[str] = None
     
     # CORS settings
     BACKEND_CORS_ORIGINS: list[str] = []

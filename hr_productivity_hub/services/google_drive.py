@@ -56,11 +56,35 @@ class GoogleDriveClient:
         self.service = None
         self._mock_mode = True
 
-        credentials_path: Optional[str] = settings.GOOGLE_DRIVE_CREDENTIALS
+        refresh_token = settings.GOOGLE_DRIVE_REFRESH_TOKEN
+        credentials_path = settings.GOOGLE_DRIVE_CREDENTIALS
+
+        if refresh_token:
+            try:
+                from googleapiclient.discovery import build
+                from google.oauth2.credentials import Credentials
+
+                creds = Credentials(
+                    token=None,
+                    refresh_token=refresh_token,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    client_id=settings.GOOGLE_CLIENT_ID,
+                    client_secret=settings.GOOGLE_CLIENT_SECRET,
+                )
+                self.service = build("drive", "v3", credentials=creds, cache_discovery=False)
+                self._mock_mode = False
+                logger.info("GoogleDriveClient initialised with User OAuth2 credentials (refresh token).")
+                return
+            except Exception as exc:
+                logger.warning(
+                    "Failed to initialise GoogleDriveClient using refresh token: %s. "
+                    "Trying Service Account fallback.",
+                    exc,
+                )
 
         if not credentials_path:
             logger.warning(
-                "GOOGLE_DRIVE_CREDENTIALS is not set. "
+                "Neither GOOGLE_DRIVE_REFRESH_TOKEN nor GOOGLE_DRIVE_CREDENTIALS is set. "
                 "GoogleDriveClient running in mock/fallback mode."
             )
             return
@@ -77,10 +101,17 @@ class GoogleDriveClient:
             from googleapiclient.discovery import build
             from google.oauth2 import service_account
 
-            scopes = ["https://www.googleapis.com/auth/drive.file"]
+            scopes = ["https://www.googleapis.com/auth/drive"]
             creds = service_account.Credentials.from_service_account_file(
                 credentials_path, scopes=scopes
             )
+            
+            # If delegated email is configured, impersonate that user for quota limits
+            delegated_email = settings.GOOGLE_CALENDAR_DELEGATED_EMAIL
+            if delegated_email:
+                creds = creds.with_subject(delegated_email)
+                logger.info("GoogleDriveClient will impersonate delegated email: %s", delegated_email)
+                
             self.service = build("drive", "v3", credentials=creds, cache_discovery=False)
             self._mock_mode = False
             logger.info("GoogleDriveClient initialised with service account credentials.")
